@@ -2,7 +2,7 @@ import { Form, Link, useNavigation } from "react-router";
 
 import { useMemo, useState } from "react";
 import type { Route } from "./+types/create";
-import { formatIDR } from "~/type/toIdr";
+import { formatIDR } from "~/types/toIdr";
 
 export default function PembayaranCreate({ loaderData }: Route.ComponentProps) {
   const navigation = useNavigation();

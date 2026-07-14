@@ -3,7 +3,7 @@
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 
-import { formatIDR } from "~/type/toIdr";
+import { formatIDR } from "~/types/toIdr";
 import type { Route } from "./+types/detail";
 import { Link } from "react-router";
 

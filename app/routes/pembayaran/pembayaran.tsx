@@ -2,7 +2,7 @@
 
 import { api } from "~/lib/api";
 import PembayaranPage from "./pembayaranPage";
-import type { Pembayaran } from "~/type/typdeData";
+import type { Pembayaran } from "~/types/typdeData";
 import type { Route } from "./+types/pembayaran";
 
 type PembayaranResponse = {

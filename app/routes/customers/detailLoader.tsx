@@ -1,7 +1,7 @@
 import { api } from "~/lib/api";
 import CustomerDetail from "./CustomerDetail";
 import type { Route } from "./+types/detailLoader";
-import type { Area, Customer, Modem, Odp, Paket, Olt } from "~/type/typdeData";
+import type { Area, Customer, Modem, Odp, Paket, Olt } from "~/types/typdeData";
 import { redirect } from "react-router";
 
 type OdpResponse = {

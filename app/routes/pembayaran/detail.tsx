@@ -1,7 +1,7 @@
 import { api } from "~/lib/api";
 import type { Route } from "./+types/detail";
 import PembayaranDetail from "./PembayaranDetail";
-import type { Pembayaran } from "~/type/typdeData";
+import type { Pembayaran } from "~/types/typdeData";
 
 type Response = {
   success: boolean;

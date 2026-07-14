@@ -1,5 +1,5 @@
 import { Form, Link, useNavigation } from "react-router";
-import { formatIDR } from "~/type/toIdr";
+import { formatIDR } from "~/types/toIdr";
 import type { Route } from "./+types/detailLoader";
 
 export default function customerDetail({ loaderData }: Route.ComponentProps) {

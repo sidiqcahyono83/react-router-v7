@@ -4,7 +4,7 @@ import { Link } from "react-router";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 
-import { formatIDR } from "~/type/toIdr";
+import { formatIDR } from "~/types/toIdr";
 import type { Route } from "./+types/pembayaran";
 
 export default function PembayaranPage({ loaderData }: Route.ComponentProps) {

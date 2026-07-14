@@ -22,7 +22,9 @@ export default function CustomersPage() {
           <thead>
             <tr className="border-b bg-gray-100">
               <th className="p-3 text-left">No</th>
-              <th className="p-3 text-left">Nama</th>
+              <th className="p-3 text-left">
+                
+                Nama</th>
               <th className="p-3 text-left">Username</th>
               <th className="p-3 text-left">Area</th>
               <th className="p-3 text-left">Paket</th>
