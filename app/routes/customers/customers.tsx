@@ -1,34 +1,28 @@
-import { Link, useLoaderData } from "react-router";
-import { getCustomers } from "~/features/customers/api";
+import { useEffect, useState } from "react";
+import { CustomerAPI } from "~/features/customers/api/list";
 
-import { CustomerTable } from "~/features/customers/components/CustomerTable";
-import type { Route } from "./+types/customers";
+export default function CustomersPage() {
+  const [customers, setCustomers] = useState([]);
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const cookie = request.headers.get("cookie");
+  useEffect(() => {
+    loadCustomers();
+  }, []);
 
-  return {
-    customers: await getCustomers(cookie),
-  };
-}
-
-export default function CustomersPage({ loaderData }: Route.ComponentProps) {
-  const { customers } = useLoaderData<typeof loader>();
+  async function loadCustomers() {
+    try {
+      const customers = await CustomerAPI.getAll();
+      setCustomers(customers);
+    } catch (error: any) {
+      console.log(error.response?.status);
+      console.log(error.response?.data);
+    }
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Customer</h1>
-
-        <Link
-          to="/admin/customers/create"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-white"
-        >
-          Tambah Customer
-        </Link>
-      </div>
-
-      <CustomerTable customers={customers} />
+    <div>
+      {customers.map((item: any) => (
+        <div key={item.id}>{item.fullname}</div>
+      ))}
     </div>
   );
 }
