@@ -7,9 +7,13 @@ export default function LoginPage() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
-  async function login(e: React.FormEvent) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    setLoading(true);
+    setError("");
 
     try {
       await AuthAPI.login({
@@ -17,18 +21,16 @@ export default function LoginPage() {
         password,
       });
 
-      const me = await AuthAPI.me();
-
-      console.log(me.data);
-
       navigate("/admin");
     } catch (err) {
-      alert("Username atau password salah");
+      setError("Username atau password salah.");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={login}>
+    <form onSubmit={handleSubmit}>
       <input value={username} onChange={(e) => setUsername(e.target.value)} />
 
       <input

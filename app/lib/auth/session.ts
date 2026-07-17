@@ -1,11 +1,8 @@
-import { api, API_ENDPOINT } from "../../lib/api";
-
-import type { AuthUser } from "~/features/auth";
+import { api } from "~/lib/axios";
 
 export async function getSession() {
   try {
-    const { data } = await api.get<AuthUser>(API_ENDPOINT.auth.me);
-
+    const { data } = await api.get("/auth/me");
     return data;
   } catch {
     return null;

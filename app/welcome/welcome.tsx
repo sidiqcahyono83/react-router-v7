@@ -69,10 +69,7 @@ export function Welcome() {
         </div>{" "}
       </nav>{" "}
       {/* Hero */}{" "}
-      <section
-        id="home"
-        className="bg-gradient-to-r from-blue-700 to-cyan-500 text-white"
-      >
+      <section id="home" className="bg-blue-700 to-cyan-500 text-white">
         {" "}
         <div className="max-w-7xl mx-auto px-6 py-24 grid lg:grid-cols-2 gap-10 items-center">
           {" "}
@@ -112,7 +109,7 @@ export function Welcome() {
         </div>{" "}
       </section>{" "}
       {/* Statistik */}{" "}
-      <section className="bg-gray-100 py-16">
+      <section className="bg-gray-200 py-16">
         {" "}
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {" "}

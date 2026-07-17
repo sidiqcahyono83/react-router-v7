@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import LoginForm from "./LoginForm";
 
-import { LoginForm } from "./LoginForm";
+
 
 export function LoginCard() {
   return (

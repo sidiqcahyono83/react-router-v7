@@ -32,6 +32,14 @@ export interface Area {
   updatedAt: Date;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  fullname: string;
+  level: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 export interface Paket {
   id: string;
   name: string;
