@@ -9,14 +9,9 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
-import { AppProvider } from "./providers";
-import { getSession } from "~/lib/auth";
 
-export async function loader() {
-  return {
-    user: await getSession(),
-  };
-}
+import { AuthProvider } from "./providers/AuthProvider";
+
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
@@ -40,7 +35,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <AppProvider>{children}</AppProvider>
+        <AuthProvider>{children}</AuthProvider>
 
         <ScrollRestoration />
         <Scripts />

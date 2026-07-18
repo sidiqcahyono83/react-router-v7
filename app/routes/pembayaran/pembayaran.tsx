@@ -1,21 +1,65 @@
-// app/routes/pembayaran/pembayaran.tsx
+import { useEffect, useState } from "react";
 
-import { api } from "~/lib/api";
-import PembayaranPage from "./pembayaranPage";
-import type { Pembayaran } from "~/types/typdeData";
-import type { Route } from "./+types/pembayaran";
+import { getPembayarans } from "~/api/pembayaran";
 
-type PembayaranResponse = {
-  success: boolean;
-  message: string;
-  data: Pembayaran[];
-};
+import PembayaranToolbar from "./PembayaranToolbar";
+import PembayaranTable from "./PembayaranTable";
+import PembayaranPagination from "./PembayaranPagination";
+import Pagination from "~/components/ui/Pagination";
 
-export async function loader({}: Route.LoaderArgs) {
-  const response = await api<PembayaranResponse>("/pembayaran");
+export default function PembayaranPage() {
+  const [loading, setLoading] = useState(true);
 
-  return {
-    pembayarans: response.data,
-  };
+  const [data, setData] = useState([]);
+
+  const [search, setSearch] = useState("");
+
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  });
+
+  async function load(page = 1, keyword = search) {
+    setLoading(true);
+
+    try {
+      const result = await getPembayarans({
+        page,
+        limit: pagination.limit,
+        search: keyword,
+      });
+
+      setData(result.data);
+
+      setPagination(result.pagination);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <PembayaranToolbar
+        onSearch={(keyword) => {
+          setSearch(keyword);
+
+          load(1, keyword);
+        }}
+      />
+
+      <PembayaranTable loading={loading} data={data} />
+
+      <Pagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        onChange={(page) => load(page)}
+      />
+    </div>
+  );
 }
-export default PembayaranPage;

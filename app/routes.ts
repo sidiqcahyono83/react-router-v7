@@ -12,20 +12,23 @@ export default [
   route("login", "routes/auth/login.tsx"),
 
   ...prefix("admin", [
-    layout("routes/layouts.tsx", [
-      index("routes/dashboard/dashboard.tsx"),
+    layout("routes/auth/auth-layout.tsx", [
+      layout("routes/layouts.tsx", [
+        index("routes/dashboard/dashboard.tsx"),
+        route("customers", "routes/customers/customers.tsx"),
 
-      ...prefix("customers", [
-        index("routes/customers/customers.tsx"),
-        // route("create", "routes/customers/create.tsx"),
-        // route(":id", "routes/customers/CustomerDetail.tsx"),
+        route("customers/create", "routes/customers/create.tsx"),
+
+        route("customers/:id", "routes/customers/detail.tsx"),
+
+        route("customers/:id/edit", "routes/customers/edit.tsx"),
+
+        //Pembayaran
+        route("pembayaran", "routes/pembayaran/pembayaran.tsx"),
+        route("pembayaran/create", "routes/pembayaran/create.tsx"),
+        route("pembayaran/:id", "routes/pembayaran/detail.tsx"),
+        route("pembayaran/:id/edit", "routes/pembayaran/edit.tsx"),
       ]),
-
-      // ...prefix("payments", [
-      //   index("routes/pembayaran/pembayaran.tsx"),
-      //   route("create", "routes/pembayaran/create.tsx"),
-      //   route(":id", "routes/pembayaran/detail.tsx"),
-      // ]),
     ]),
   ]),
 ] satisfies RouteConfig;

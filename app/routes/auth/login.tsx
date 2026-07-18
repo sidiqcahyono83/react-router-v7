@@ -1,19 +1,32 @@
-import { Form, redirect, type ActionFunctionArgs } from "react-router";
-import { AuthAPI } from "~/api/auth";
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { login } from "~/api/authLogin";
 import Logo from "~/components/ui/Logo";
+import { useAuth } from "~/hooks/useAuth";
 
-export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
+export default function LoginPage() {
+  const navigate = useNavigate();
 
-  await AuthAPI.login({
-    username: String(formData.get("username")),
-    password: String(formData.get("password")),
-  });
+  const { refreshUser } = useAuth();
 
-  return redirect("/admin");
-}
+  const [username, setUsername] = useState("");
 
-export default function Login() {
+  const [password, setPassword] = useState("");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    try {
+      await login(username, password);
+      console.log("login berhasil");
+      await refreshUser();
+      console.log("refresh selesai");
+      navigate("/admin");
+    } catch {
+      alert("Login gagal");
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient from-slate-900 via-blue-900 to-sky-700">
       <div className="mx-auto flex min-h-screen max-w-7xl items-center justify-center px-6">
@@ -54,13 +67,15 @@ export default function Login() {
               </p>
             </div>
 
-            <Form method="post" className="mt-10 space-y-6">
+            <form onSubmit={handleSubmit} className="mt-10 space-y-6">
               <div>
                 <label className="mb-2 block font-medium">Username</label>
 
                 <input
-                  name="username"
                   className="w-full rounded-xl border p-3 outline-none focus:border-blue-600"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
               </div>
 
@@ -69,15 +84,17 @@ export default function Login() {
 
                 <input
                   type="password"
-                  name="password"
                   className="w-full rounded-xl border p-3 outline-none focus:border-blue-600"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
 
               <button className="w-full rounded-xl bg-blue-600 p-3 font-semibold text-white hover:bg-blue-700">
                 Login
               </button>
-            </Form>
+            </form>
           </div>
         </div>
       </div>

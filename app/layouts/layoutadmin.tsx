@@ -1,22 +1,25 @@
-import { Outlet } from "react-router";
-import { useState } from "react";
-import Navbar from "~/components/layouts/navbar";
-import Sidebar from "~/components/layouts/sidebar";
+import { Outlet, useOutletContext } from "react-router";
+import type { User } from "~/types/typeData";
+
+type AuthContext = {
+  user: User;
+};
 
 export default function AdminLayout() {
-  const [open, setOpen] = useState(false);
-
+   const { user } = useOutletContext<AuthContext>();
   return (
-    <div className="flex min-h-screen bg-slate-100">
-      <Sidebar />
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+      <aside className="w-64 bg-slate-800 text-white">Sidebar</aside>
 
-      <div className="flex flex-1 flex-col">
-        <Navbar onMenuClick={() => setOpen(true)} />
+      {/* Content */}
+      <main className="flex-1">
+        <header className="h-16 border-b px-6 flex items-center">Navbar</header>
 
-        <main className="flex-1 p-6">
+        <div className="p-6">
           <Outlet />
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

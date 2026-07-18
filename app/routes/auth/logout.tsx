@@ -1,9 +1,9 @@
 import { Form, redirect } from "react-router";
 import type { ActionFunctionArgs } from "react-router";
-import { AuthAPI } from "~/api/auth";
+import { logout } from "./auth";
 
 export async function action({}: ActionFunctionArgs) {
-  await AuthAPI.logout();
+  await logout();
 
   return redirect("/login");
 }
@@ -11,7 +11,6 @@ export async function action({}: ActionFunctionArgs) {
 export default function Logout() {
   return null;
 }
-
 
 <Form action="/logout" method="post">
   <button>Logout</button>

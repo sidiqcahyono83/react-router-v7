@@ -1,15 +1,39 @@
-import type { Route } from "./+types/dashboard";
+import { useEffect, useState } from "react";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  return null;
-}
+
+
+import IncomeChart from "~/components/dashboard/IncomeChart";
+
+import NewCustomers from "~/components/dashboard/NewCustomers";
+import UnpaidCustomers from "~/components/dashboard/UnpaidCustomers";
+import { getDashboard } from "./apiDashboard";
+import DashboardSummary from "~/components/dashboard/DashboardSumary";
+import LatestPayments from "~/components/dashboard/LastPayments";
 
 export default function DashboardPage() {
-  return (
-    <div>
-      <h1 className="text-3xl font-bold">Dashboard</h1>
+  const [dashboard, setDashboard] = useState<any>();
 
-      <p className="mt-2 text-slate-500">Selamat datang di Billing System</p>
+  useEffect(() => {
+    getDashboard().then(setDashboard);
+  }, []);
+
+  if (!dashboard) {
+    return <p>Loading...</p>;
+  }
+
+  return (
+    <div className="space-y-8">
+      <DashboardSummary summary={dashboard.summary} />
+
+      <IncomeChart data={dashboard.monthlyIncome} />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <UnpaidCustomers data={dashboard.unpaidCustomers} />
+
+        <LatestPayments data={dashboard.latestPayments} />
+      </div>
+
+      <NewCustomers data={dashboard.newCustomers} />
     </div>
   );
 }

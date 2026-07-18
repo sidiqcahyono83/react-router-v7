@@ -1,31 +1,58 @@
-// create.tsx
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 
-import { api } from "~/lib/api";
-import type { Route } from "./+types/create";
-import type { Customer } from "~/types/typdeData";
-import PembayaranCreate from "./PembayaranCreate";
+import PembayaranForm from "~/components/pembayaran/PembayaranForm";
 
-type CustomersResponse = {
-  customers: Customer[];
-};
+import { createPembayaran } from "~/api/pembayaran";
+import { getCustomers } from "~/api/customers";
+import type { Customer } from "~/types/typeData";
 
-export async function loader() {
-  const customers = await api<CustomersResponse>("/customers");
+export default function CreatePembayaran() {
+  const navigate = useNavigate();
 
-  return {
-    customers: customers.customers,
-  };
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadCustomers();
+  }, []);
+
+  async function loadCustomers() {
+    const result = await getCustomers({
+      page: 1,
+      limit: 1000,
+      search: "",
+    });
+
+    // console.log("RESULT =", result);
+    // console.log("KEYS =", Object.keys(result));
+
+    setCustomers(result.data);
+  }
+
+  async function handleSubmit(formData: FormData) {
+    try {
+      setLoading(true);
+
+      await createPembayaran(formData);
+
+      alert("Pembayaran berhasil ditambahkan");
+
+      navigate("/admin/pembayaran");
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+  console.log(customers);
+  return (
+    <div className="mx-auto max-w-5xl">
+      <PembayaranForm
+        customers={customers}
+        loading={loading}
+        onSubmit={handleSubmit}
+      />
+    </div>
+  );
 }
-
-export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
-
-  await api("/pembayaran", {
-    method: "POST",
-    body: formData,
-  });
-
-  return null;
-}
-
-export default PembayaranCreate;
