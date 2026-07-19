@@ -38,12 +38,6 @@ export default function PembayaranTable({ loading, data }: Props) {
   return (
     <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
       <div className="overflow-x-auto">
-        <Link
-          to="/admin/pembayaran/create"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-white"
-        >
-          Tambah Pembayaran
-        </Link>
         <table className="min-w-full">
           <thead className="border-b bg-green-200">
             <tr className="text-left text-sm font-semibold text-slate-600">
@@ -67,8 +61,8 @@ export default function PembayaranTable({ loading, data }: Props) {
 
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-700">
-                      {pembayaran.customer.fullname?.charAt(0).toUpperCase()}
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700">
+                      {pembayaran.customer.fullname.charAt(0)}
                     </div>
 
                     <div>
@@ -77,7 +71,7 @@ export default function PembayaranTable({ loading, data }: Props) {
                       </p>
 
                       <p className="text-sm text-slate-500">
-                        @{pembayaran.user.username}
+                        {pembayaran.user.username}
                       </p>
                     </div>
                   </div>

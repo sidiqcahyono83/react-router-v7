@@ -1,6 +1,6 @@
 const API = import.meta.env.VITE_API_URL;
 
-export async function getPakets(params: {
+export async function getAreas(params: {
   page: number;
   limit: number;
   search?: string;
@@ -11,31 +11,31 @@ export async function getPakets(params: {
     search: params.search ?? "",
   });
 
-  const res = await fetch(`${API}/pakets?${query}`, {
+  const res = await fetch(`${API}/areas?${query}`, {
     credentials: "include",
   });
 
   if (!res.ok) {
-    throw new Error("Gagal mengambil data paket");
+    throw new Error("Gagal mengambil data area");
   }
 
   return res.json();
 }
 
-export async function getPaketId(id: string) {
-  const res = await fetch(`${API}/pakets/${id}`, {
+export async function getAreaId(id: string) {
+  const res = await fetch(`${API}/areas/${id}`, {
     credentials: "include",
   });
 
   if (!res.ok) {
-    throw new Error("Gagal mengambil paket");
+    throw new Error("Gagal mengambil area");
   }
 
   return res.json();
 }
 
-export async function updatePaket(id: string, data: any) {
-  const res = await fetch(`${API}/pakets/${id}`, {
+export async function updateArea(id: string, data: any) {
+  const res = await fetch(`${API}/areas/${id}`, {
     method: "PATCH",
     credentials: "include",
     headers: {
@@ -53,8 +53,8 @@ export async function updatePaket(id: string, data: any) {
   return result;
 }
 
-export async function createPaket(data: { name: string; harga: number }) {
-  const res = await fetch(`${API}/pakets`, {
+export async function createArea(data: { name: string }) {
+  const res = await fetch(`${API}/areas`, {
     method: "POST",
     credentials: "include",
     headers: {
@@ -72,8 +72,8 @@ export async function createPaket(data: { name: string; harga: number }) {
   return result;
 }
 
-export async function getAllPaket() {
-  const res = await fetch(`${API}/pakets/all`, {
+export async function getAllArea() {
+  const res = await fetch(`${API}/areas/all`, {
     credentials: "include",
   });
 

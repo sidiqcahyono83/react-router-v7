@@ -7,6 +7,10 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  ChevronsLeftRightEllipsis,
+  Pin,
+  Router,
+  Server,
   type LucideIcon,
 } from "lucide-react";
 
@@ -15,6 +19,7 @@ export interface MenuItem {
   href?: string;
   icon: LucideIcon;
   action?: "logout";
+  children?: MenuItem[];
 }
 
 export interface MenuGroup {
@@ -46,6 +51,26 @@ export const navigation: MenuGroup[] = [
         href: "/admin/paket",
         icon: Package,
       },
+      {
+        title: "Cover Area",
+        href: "/admin/area",
+        icon: Pin,
+      },
+      {
+        title: "ODP",
+        href: "/admin/odp",
+        icon: ChevronsLeftRightEllipsis,
+      },
+      {
+        title: "Modem",
+        href: "/admin/modem",
+        icon: Router,
+      },
+      {
+        title: "Olt",
+        href: "/admin/olt",
+        icon: Server,
+      },
     ],
   },
   {
@@ -68,8 +93,24 @@ export const navigation: MenuGroup[] = [
     items: [
       {
         title: "Laporan",
-        href: "/admin/laporan",
         icon: BarChart3,
+        children: [
+          {
+            title: "Pendapatan",
+            href: "/admin/laporan/pendapatan",
+            icon: CreditCard,
+          },
+          {
+            title: "Pengeluaran",
+            href: "/admin/laporan/pengeluaran",
+            icon: FileText,
+          },
+          {
+            title: "Buku Kas",
+            href: "/admin/laporan/buku-kas",
+            icon: BarChart3,
+          },
+        ],
       },
     ],
   },

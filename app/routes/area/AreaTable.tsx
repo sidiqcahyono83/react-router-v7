@@ -7,7 +7,7 @@ interface Props {
   data: any[];
 }
 
-export default function PaketTable({ loading, data }: Props) {
+export default function AreaTable({ loading, data }: Props) {
   if (loading) {
     return (
       <div className="rounded-2xl bg-white p-6 shadow-sm">
@@ -39,17 +39,17 @@ export default function PaketTable({ loading, data }: Props) {
           <thead className="border-b bg-green-200">
             <tr className="text-left text-sm font-semibold text-slate-600">
               <th className="px-5 py-4">#</th>
-              <th className="px-5 py-4">Paket</th>
-              <th className="px-5 py-4">Harga</th>
+              <th className="px-5 py-4">Area</th>
               <th className="px-5 py-4">Customer</th>
+              <th className="px-5 py-4">ODP</th>
               <th className="px-5 py-4">Aksi</th>
             </tr>
           </thead>
-
+          {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
           <tbody>
-            {data.map((paket, index) => (
+            {data.map((area, index) => (
               <tr
-                key={paket.id}
+                key={area.id}
                 className="border-b transition hover:bg-slate-50"
               >
                 <td className="px-5 py-4 font-medium">{index + 1}</td>
@@ -57,35 +57,37 @@ export default function PaketTable({ loading, data }: Props) {
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="font-semibold">{paket.name}</p>
-
-                      <p className="text-sm text-slate-500">@{paket.harga}</p>
+                      <p className="font-semibold">{area.name}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <p className="font-semibold">{area._count.customer}</p>
                     </div>
                   </div>
                 </td>
 
                 <td className="px-5 py-4">
-                  <span className="px-3 py-1 text-sm font-medium text-gray-700">
-                    {formatIDR(paket.harga)}
-                  </span>
-                </td>
-                <td className="px-5 py-4">
-                  <span className="px-3 py-1 text-sm font-medium text-gray-700">
-                    {paket._count.customer}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <p className="font-semibold">{area._count.odp}</p>
+                    </div>
+                  </div>
                 </td>
 
                 <td className="px-5 py-4">
                   <div className="flex justify-baseline gap-2">
                     <Link
-                      to={`/admin/paket/${paket.id}`}
+                      to={`/admin/area/${area.id}`}
                       className="rounded-lg border p-2 text-blue-600 transition hover:bg-blue-50"
                     >
                       <Eye size={18} />
                     </Link>
 
                     <Link
-                      to={`/admin/paket/${paket.id}/edit`}
+                      to={`/admin/area/${area.id}/edit`}
                       className="rounded-lg border p-2 text-amber-600 transition hover:bg-amber-50"
                     >
                       <Pencil size={18} />

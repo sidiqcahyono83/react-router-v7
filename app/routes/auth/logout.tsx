@@ -5,7 +5,7 @@ import { logout } from "./auth";
 export async function action({}: ActionFunctionArgs) {
   await logout();
 
-  return redirect("/login");
+  return redirect("/");
 }
 
 export default function Logout() {

@@ -6,14 +6,11 @@ interface Props {
   onSearch: (value: string) => void;
 }
 
-export default function PembayaranToolbar({ search, onSearch }: Props) {
+export default function ModemToolbar({ search, onSearch }: Props) {
   return (
     <div className="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
       <div>
-        <h1 className="text-2xl font-bold">Pembayaran</h1>
-        <p className="text-sm text-slate-500">
-          Kelola seluruh transaksi pembayaran customer.
-        </p>
+        <h1 className="text-2xl font-bold">Modem</h1>
       </div>
 
       <div className="flex flex-col gap-3 md:flex-row">
@@ -26,17 +23,17 @@ export default function PembayaranToolbar({ search, onSearch }: Props) {
           <input
             value={search}
             onChange={(e) => onSearch(e.target.value)}
-            placeholder="Cari customer..."
+            placeholder="Cari modem..."
             className="w-full rounded-xl border py-2 pl-10 pr-4 md:w-72"
           />
         </div>
 
         <Link
-          to="/admin/pembayaran/create"
+          to="/admin/modem/create"
           className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 font-medium text-white transition hover:bg-blue-700"
         >
           <Plus size={18} />
-          Tambah Pembayaran
+          Tambah Modem
         </Link>
       </div>
     </div>

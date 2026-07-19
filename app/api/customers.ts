@@ -52,3 +52,62 @@ export async function updateCustomer(id: string, data: any) {
 
   return result;
 }
+
+export async function createCustomer(data: any) {
+  const res = await fetch(`${API}/customers`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  const result = await res.json();
+
+  if (!res.ok) {
+    throw new Error(result.message);
+  }
+
+  return result;
+}
+
+export async function searchCustomers(keyword: string) {
+  const query = new URLSearchParams({
+    page: "1",
+    limit: "10",
+    search: keyword,
+  });
+
+  const res = await fetch(`${API}/customers?${query}`, {
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    throw new Error("Gagal mengambil customer");
+  }
+
+  const result = await res.json();
+
+  return result.data;
+}
+
+//Create withPPPoE
+export async function registerCustomer(data: any) {
+  const res = await fetch(`${API}/customers/register`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  const result = await res.json();
+
+  if (!res.ok) {
+    throw new Error(result.message);
+  }
+
+  return result;
+}

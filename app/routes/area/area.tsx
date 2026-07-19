@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { getPakets } from "~/api/paket";
-import PaketToolbar from "./PaketToolbar";
-import PaketTable from "./PaketTable";
-import PaketPagination from "./PaketPagination";
+import { getAreas } from "~/api/area";
+import AreaToolbar from "./AreaToolbar";
+import AreaTable from "./AreaTable";
+import AreaPagination from "./AreaPagination";
 
-export default function PaketsPage() {
-  const [pakets, setPakets] = useState<any[]>([]);
+export default function AreaPage() {
+  const [areas, setAreas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [pagination, setPagination] = useState({
@@ -17,20 +17,20 @@ export default function PaketsPage() {
 
   const [search, setSearch] = useState("");
 
-  async function loadPakets(
+  async function loadAreas(
     page: number = pagination.page,
     keyword: string = search,
   ) {
     setLoading(true);
 
     try {
-      const result = await getPakets({
+      const result = await getAreas({
         page,
         limit: pagination.limit,
         search: keyword,
       });
 
-      setPakets(result.data);
+      setAreas(result.data);
 
       setPagination(result.pagination);
 
@@ -43,25 +43,23 @@ export default function PaketsPage() {
   }
 
   useEffect(() => {
-    loadPakets();
+    loadAreas();
   }, []);
 
   return (
     <div className="space-y-6">
-      <PaketToolbar
+      <AreaToolbar
         search={search}
-        onSearch={(keyword) => {
-          loadPakets(1, keyword);
-        }}
+        onSearch={(keyword) => loadAreas(1, keyword)}
       />
 
-      <PaketTable loading={loading} data={pakets} />
+      <AreaTable loading={loading} data={areas} />
 
-      <PaketPagination
+      <AreaPagination
         page={pagination.page}
         totalPages={pagination.totalPages}
         onPageChange={(page: number) => {
-          loadPakets(page);
+          loadAreas(page);
         }}
       />
     </div>

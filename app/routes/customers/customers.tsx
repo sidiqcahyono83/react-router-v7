@@ -51,9 +51,8 @@ export default function CustomersPage() {
   return (
     <div className="space-y-6">
       <CustomerToolbar
-        onSearch={(keyword) => {
-          loadCustomers(1, keyword);
-        }}
+        search={search}
+        onSearch={(keyword) => loadCustomers(1, keyword)}
       />
 
       <CustomerTable loading={loading} data={customers} />

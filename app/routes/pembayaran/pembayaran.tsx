@@ -46,6 +46,7 @@ export default function PembayaranPage() {
   return (
     <div className="space-y-6">
       <PembayaranToolbar
+        search={search}
         onSearch={(keyword) => {
           setSearch(keyword);
 

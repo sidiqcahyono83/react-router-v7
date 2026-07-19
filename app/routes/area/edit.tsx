@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { getPaketId, updatePaket } from "~/api/paket";
+import { getAreaId, updateArea } from "~/api/area";
 
-export default function PaketEdit() {
+export default function AreaEdit() {
   const { id } = useParams();
 
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ export default function PaketEdit() {
 
   useEffect(() => {
     if (id) {
-      getPaketId(id).then(setForm);
+      getAreaId(id).then(setForm);
     }
   }, [id]);
 
@@ -23,9 +23,9 @@ export default function PaketEdit() {
     e.preventDefault();
 
     try {
-      await updatePaket(id!, form);
+      await updateArea(id!, form);
 
-      navigate(`/admin/paket/${id}`);
+      navigate(`/admin/area/${id}`);
     } catch (err: any) {
       alert(err.message);
     }
@@ -52,21 +52,6 @@ export default function PaketEdit() {
           className="mt-2 w-full rounded-lg border p-3"
         />
       </div>
-
-      <input
-        type="text"
-        inputMode="numeric"
-        value={Number(form.harga ?? 0).toLocaleString("id-ID")}
-        onChange={(e) => {
-          const value = e.target.value.replace(/\./g, "").replace(/[^\d]/g, "");
-
-          setForm({
-            ...form,
-            harga: Number(value),
-          });
-        }}
-        className="mt-2 w-full rounded-lg border p-3"
-      />
 
       <button className="rounded-lg bg-blue-600 px-5 py-3 text-white">
         Simpan

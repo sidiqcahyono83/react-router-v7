@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { getPaketId, updatePaket } from "~/api/paket";
+import { getModemId, updateModem } from "~/api/modem";
 
-export default function PaketEdit() {
+export default function ModemEdit() {
   const { id } = useParams();
 
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ export default function PaketEdit() {
 
   useEffect(() => {
     if (id) {
-      getPaketId(id).then(setForm);
+      getModemId(id).then(setForm);
     }
   }, [id]);
 
@@ -23,9 +23,9 @@ export default function PaketEdit() {
     e.preventDefault();
 
     try {
-      await updatePaket(id!, form);
+      await updateModem(id!, form);
 
-      navigate(`/admin/paket/${id}`);
+      navigate(`/admin/modem/${id}`);
     } catch (err: any) {
       alert(err.message);
     }
@@ -36,7 +36,7 @@ export default function PaketEdit() {
       onSubmit={handleSubmit}
       className="space-y-6 rounded-xl bg-white p-6 shadow"
     >
-      <h1 className="text-3xl font-bold">Edit Paket</h1>
+      <h1 className="text-3xl font-bold">Edit Modem</h1>
 
       <div>
         <label>Nama</label>
@@ -52,21 +52,20 @@ export default function PaketEdit() {
           className="mt-2 w-full rounded-lg border p-3"
         />
       </div>
+      <div>
+        <label>Nama</label>
 
-      <input
-        type="text"
-        inputMode="numeric"
-        value={Number(form.harga ?? 0).toLocaleString("id-ID")}
-        onChange={(e) => {
-          const value = e.target.value.replace(/\./g, "").replace(/[^\d]/g, "");
-
-          setForm({
-            ...form,
-            harga: Number(value),
-          });
-        }}
-        className="mt-2 w-full rounded-lg border p-3"
-      />
+        <input
+          value={form.serial}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              serial: e.target.value,
+            })
+          }
+          className="mt-2 w-full rounded-lg border p-3"
+        />
+      </div>
 
       <button className="rounded-lg bg-blue-600 px-5 py-3 text-white">
         Simpan

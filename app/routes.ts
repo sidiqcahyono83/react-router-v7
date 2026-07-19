@@ -15,12 +15,14 @@ export default [
     layout("routes/auth/auth-layout.tsx", [
       layout("routes/layouts.tsx", [
         index("routes/dashboard/dashboard.tsx"),
+
+        //Customers
         route("customers", "routes/customers/customers.tsx"),
-
-        route("customers/create", "routes/customers/create.tsx"),
-
+        route(
+          "customers/create",
+          "routes/customers/CustomerCreateWithPpoePage.tsx",
+        ),
         route("customers/:id", "routes/customers/detail.tsx"),
-
         route("customers/:id/edit", "routes/customers/edit.tsx"),
 
         //Pembayaran
@@ -34,6 +36,28 @@ export default [
         route("paket/create", "routes/paket/create.tsx"),
         route("paket/:id", "routes/paket/detail.tsx"),
         route("paket/:id/edit", "routes/paket/edit.tsx"),
+
+        //Area
+        route("area", "routes/area/area.tsx"),
+        route("area/create", "routes/area/create.tsx"),
+        route("area/:id", "routes/area/detail.tsx"),
+        route("area/:id/edit", "routes/area/edit.tsx"),
+        //Modem
+        route("modem", "routes/modem/modem.tsx"),
+        route("modem/create", "routes/modem/create.tsx"),
+        route("modem/:id", "routes/modem/detail.tsx"),
+        route("modem/:id/edit", "routes/modem/edit.tsx"),
+
+        //Odp
+        route("odp", "routes/odp/odp.tsx"),
+        route("odp/create", "routes/odp/create.tsx"),
+        route("odp/:id", "routes/odp/detail.tsx"),
+        route("odp/:id/edit", "routes/odp/edit.tsx"),
+        // //OLT
+        // route("olt", "routes/olt/olt.tsx"),
+        // route("olt/create", "routes/olt/create.tsx"),
+        // route("olt/:id", "routes/olt/detail.tsx"),
+        // route("olt/:id/edit", "routes/olt/edit.tsx"),
       ]),
     ]),
   ]),

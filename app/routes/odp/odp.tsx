@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { getPakets } from "~/api/paket";
-import PaketToolbar from "./PaketToolbar";
-import PaketTable from "./PaketTable";
-import PaketPagination from "./PaketPagination";
+import { getOdp } from "~/api/odp";
+import OdpToolbar from "./OdpToolbar";
+import OdpTable from "./OdpTable";
+import OdpPagination from "./OdpPagination";
 
-export default function PaketsPage() {
-  const [pakets, setPakets] = useState<any[]>([]);
+export default function OdpPage() {
+  const [odp, setOdp] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [pagination, setPagination] = useState({
@@ -17,20 +17,20 @@ export default function PaketsPage() {
 
   const [search, setSearch] = useState("");
 
-  async function loadPakets(
+  async function loadOdp(
     page: number = pagination.page,
     keyword: string = search,
   ) {
     setLoading(true);
 
     try {
-      const result = await getPakets({
+      const result = await getOdp({
         page,
         limit: pagination.limit,
         search: keyword,
       });
 
-      setPakets(result.data);
+      setOdp(result.data);
 
       setPagination(result.pagination);
 
@@ -43,25 +43,25 @@ export default function PaketsPage() {
   }
 
   useEffect(() => {
-    loadPakets();
+    loadOdp();
   }, []);
 
   return (
     <div className="space-y-6">
-      <PaketToolbar
+      <OdpToolbar
         search={search}
         onSearch={(keyword) => {
-          loadPakets(1, keyword);
+          loadOdp(1, keyword);
         }}
       />
 
-      <PaketTable loading={loading} data={pakets} />
+      <OdpTable loading={loading} data={odp} />
 
-      <PaketPagination
+      <OdpPagination
         page={pagination.page}
         totalPages={pagination.totalPages}
         onPageChange={(page: number) => {
-          loadPakets(page);
+          loadOdp(page);
         }}
       />
     </div>

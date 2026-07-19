@@ -1,6 +1,8 @@
+import type { string } from "zod";
+
 const API = import.meta.env.VITE_API_URL;
 
-export async function getPakets(params: {
+export async function getOdp(params: {
   page: number;
   limit: number;
   search?: string;
@@ -11,31 +13,38 @@ export async function getPakets(params: {
     search: params.search ?? "",
   });
 
-  const res = await fetch(`${API}/pakets?${query}`, {
+  const res = await fetch(`${API}/odps?${query}`, {
     credentials: "include",
   });
 
   if (!res.ok) {
-    throw new Error("Gagal mengambil data paket");
+    throw new Error("Gagal mengambil data odp");
   }
 
   return res.json();
 }
 
-export async function getPaketId(id: string) {
-  const res = await fetch(`${API}/pakets/${id}`, {
+export async function getOdpId(id: string) {
+  const res = await fetch(`${API}/odps/${id}`, {
     credentials: "include",
   });
 
   if (!res.ok) {
-    throw new Error("Gagal mengambil paket");
+    throw new Error("Gagal mengambil odp");
   }
 
   return res.json();
 }
 
-export async function updatePaket(id: string, data: any) {
-  const res = await fetch(`${API}/pakets/${id}`, {
+export interface UpdateOdpPayload {
+  name: string;
+  rasio?: string | null;
+  pasiveSpliter?: string | null;
+  areaId?: string | null;
+  customerIds?: string[];
+}
+export async function updateOdp(id: string, data: UpdateOdpPayload) {
+  const res = await fetch(`${API}/odps/${id}`, {
     method: "PATCH",
     credentials: "include",
     headers: {
@@ -47,14 +56,19 @@ export async function updatePaket(id: string, data: any) {
   const result = await res.json();
 
   if (!res.ok) {
-    throw new Error(result.message);
+    throw new Error(result.message || "Gagal mengupdate ODP.");
   }
 
-  return result;
+  return result.data ?? result;
 }
 
-export async function createPaket(data: { name: string; harga: number }) {
-  const res = await fetch(`${API}/pakets`, {
+export async function createOdp(data: {
+  name: string;
+  rasio: string;
+  pasiveSpliter: string;
+  areaId: string;
+}) {
+  const res = await fetch(`${API}/odps`, {
     method: "POST",
     credentials: "include",
     headers: {
@@ -72,8 +86,8 @@ export async function createPaket(data: { name: string; harga: number }) {
   return result;
 }
 
-export async function getAllPaket() {
-  const res = await fetch(`${API}/pakets/all`, {
+export async function getAllOdp() {
+  const res = await fetch(`${API}/odps/all`, {
     credentials: "include",
   });
 

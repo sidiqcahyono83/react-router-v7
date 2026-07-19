@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { getPakets } from "~/api/paket";
-import PaketToolbar from "./PaketToolbar";
-import PaketTable from "./PaketTable";
-import PaketPagination from "./PaketPagination";
+import { getModem } from "~/api/modem";
 
-export default function PaketsPage() {
-  const [pakets, setPakets] = useState<any[]>([]);
+import ModemTable from "./ModemTable";
+import ModemPagination from "./ModemPagination";
+import ModemToolbar from "./ModemToolbar";
+
+export default function AreaPage() {
+  const [modem, setModem] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [pagination, setPagination] = useState({
@@ -17,20 +18,20 @@ export default function PaketsPage() {
 
   const [search, setSearch] = useState("");
 
-  async function loadPakets(
+  async function loadModem(
     page: number = pagination.page,
     keyword: string = search,
   ) {
     setLoading(true);
 
     try {
-      const result = await getPakets({
+      const result = await getModem({
         page,
         limit: pagination.limit,
         search: keyword,
       });
 
-      setPakets(result.data);
+      setModem(result.data);
 
       setPagination(result.pagination);
 
@@ -43,25 +44,25 @@ export default function PaketsPage() {
   }
 
   useEffect(() => {
-    loadPakets();
+    loadModem();
   }, []);
 
   return (
     <div className="space-y-6">
-      <PaketToolbar
+      <ModemToolbar
         search={search}
         onSearch={(keyword) => {
-          loadPakets(1, keyword);
+          loadModem(1, keyword);
         }}
       />
 
-      <PaketTable loading={loading} data={pakets} />
+      <ModemTable loading={loading} data={modem} />
 
-      <PaketPagination
+      <ModemPagination
         page={pagination.page}
         totalPages={pagination.totalPages}
         onPageChange={(page: number) => {
-          loadPakets(page);
+          loadModem(page);
         }}
       />
     </div>

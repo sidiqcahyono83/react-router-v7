@@ -18,9 +18,9 @@ export default function LoginPage() {
 
     try {
       await login(username, password);
-      console.log("login berhasil");
+      // console.log("login berhasil");
       await refreshUser();
-      console.log("refresh selesai");
+      // console.log("refresh selesai");
       navigate("/admin");
     } catch {
       alert("Login gagal");

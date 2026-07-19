@@ -1,6 +1,6 @@
 const API = import.meta.env.VITE_API_URL;
 
-export async function getPakets(params: {
+export async function getModem(params: {
   page: number;
   limit: number;
   search?: string;
@@ -11,31 +11,31 @@ export async function getPakets(params: {
     search: params.search ?? "",
   });
 
-  const res = await fetch(`${API}/pakets?${query}`, {
+  const res = await fetch(`${API}/modems?${query}`, {
     credentials: "include",
   });
 
   if (!res.ok) {
-    throw new Error("Gagal mengambil data paket");
+    throw new Error("Gagal mengambil data modem");
   }
 
   return res.json();
 }
 
-export async function getPaketId(id: string) {
-  const res = await fetch(`${API}/pakets/${id}`, {
+export async function getModemId(id: string) {
+  const res = await fetch(`${API}/modems/${id}`, {
     credentials: "include",
   });
 
   if (!res.ok) {
-    throw new Error("Gagal mengambil paket");
+    throw new Error("Gagal mengambil modem");
   }
 
   return res.json();
 }
 
-export async function updatePaket(id: string, data: any) {
-  const res = await fetch(`${API}/pakets/${id}`, {
+export async function updateModem(id: string, data: any) {
+  const res = await fetch(`${API}/modems/${id}`, {
     method: "PATCH",
     credentials: "include",
     headers: {
@@ -53,8 +53,8 @@ export async function updatePaket(id: string, data: any) {
   return result;
 }
 
-export async function createPaket(data: { name: string; harga: number }) {
-  const res = await fetch(`${API}/pakets`, {
+export async function createModem(data: { name: string }) {
+  const res = await fetch(`${API}/modems`, {
     method: "POST",
     credentials: "include",
     headers: {
@@ -72,8 +72,8 @@ export async function createPaket(data: { name: string; harga: number }) {
   return result;
 }
 
-export async function getAllPaket() {
-  const res = await fetch(`${API}/pakets/all`, {
+export async function getAllModem() {
+  const res = await fetch(`${API}/modems/all`, {
     credentials: "include",
   });
 

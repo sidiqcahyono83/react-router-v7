@@ -8,14 +8,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
 
   async function refreshUser() {
-    console.log("refreshUser dipanggil");
+    // console.log("refreshUser dipanggil");
 
     try {
       const data = await AuthApi.me();
-      console.log("refreshUser sukses:", data);
+      // console.log("refreshUser sukses:", data);
       setUser(data);
     } catch (err) {
-      console.error("refreshUser gagal:", err);
+      // console.error("refreshUser gagal:", err);
       setUser(null);
     }
   }
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    console.log("USER BERUBAH:", user);
+    // console.log("USER BERUBAH:", user);
   }, [user]);
 
   async function logout() {
