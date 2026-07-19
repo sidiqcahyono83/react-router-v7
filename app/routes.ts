@@ -28,6 +28,12 @@ export default [
         route("pembayaran/create", "routes/pembayaran/create.tsx"),
         route("pembayaran/:id", "routes/pembayaran/detail.tsx"),
         route("pembayaran/:id/edit", "routes/pembayaran/edit.tsx"),
+
+        //Paket
+        route("paket", "routes/paket/paket.tsx"),
+        route("paket/create", "routes/paket/create.tsx"),
+        route("paket/:id", "routes/paket/detail.tsx"),
+        route("paket/:id/edit", "routes/paket/edit.tsx"),
       ]),
     ]),
   ]),
