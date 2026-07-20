@@ -22,6 +22,18 @@ export async function getCustomers(params: {
   return res.json();
 }
 
+export async function getCustomersAll() {
+  const res = await fetch(`${API}/customers/all`, {
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    throw new Error("Gagal mengambil data customer");
+  }
+
+  return res.json();
+}
+
 export async function getCustomerId(id: string) {
   const res = await fetch(`${API}/customers/${id}`, {
     credentials: "include",

@@ -42,24 +42,24 @@ export async function getPendapatanId(id: string) {
   return res.json();
 }
 
-// export async function updatePendapatan(id: string) {
-//   const res = await fetch(`${API}/pendapatan/${id}`, {
-//     method: "PATCH",
-//     credentials: "include",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify(data),
-//   });
+export async function updatePendapatan(id: string, data: any) {
+  const res = await fetch(`${API}/pendapatan/${id}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
 
-//   const result = await res.json();
+  const result = await res.json();
 
-//   if (!res.ok) {
-//     throw new Error(result.message || "Gagal mengupdate Pendapatan.");
-//   }
+  if (!res.ok) {
+    throw new Error(result.message || "Gagal mengupdate Pendapatan.");
+  }
 
-//   return result.data ?? result;
-// }
+  return result.data ?? result;
+}
 
 // export async function createPendapatan(data:) {
 //   const res = await fetch(`${API}/pendapatan`, {

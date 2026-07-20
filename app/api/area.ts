@@ -21,6 +21,17 @@ export async function getAreas(params: {
 
   return res.json();
 }
+export async function getAreasAll() {
+  const res = await fetch(`${API}/areas/all`, {
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    throw new Error("Gagal mengambil data area");
+  }
+
+  return res.json();
+}
 
 export async function getAreaId(id: string) {
   const res = await fetch(`${API}/areas/${id}`, {

@@ -36,14 +36,14 @@ export async function getOdpId(id: string) {
   return res.json();
 }
 
-export interface UpdateOdpPayload {
+export interface OdpPayload {
   name: string;
   rasio?: string | null;
   pasiveSpliter?: string | null;
   areaId?: string | null;
   customerIds?: string[];
 }
-export async function updateOdp(id: string, data: UpdateOdpPayload) {
+export async function updateOdp(id: string, data: OdpPayload) {
   const res = await fetch(`${API}/odps/${id}`, {
     method: "PATCH",
     credentials: "include",
@@ -62,12 +62,7 @@ export async function updateOdp(id: string, data: UpdateOdpPayload) {
   return result.data ?? result;
 }
 
-export async function createOdp(data: {
-  name: string;
-  rasio: string;
-  pasiveSpliter: string;
-  areaId: string;
-}) {
+export async function createOdp(data: OdpPayload) {
   const res = await fetch(`${API}/odps`, {
     method: "POST",
     credentials: "include",

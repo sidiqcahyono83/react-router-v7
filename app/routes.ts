@@ -62,7 +62,7 @@ export default [
         //Pendapatan
         route("laporan/pendapatan", "routes/pendapatan/pendapatan.tsx"),
         // route("pendapatan/create", "routes/pendapatan/create.tsx"),
-        // route("pendapatan/:id", "routes/pendapatan/detail.tsx"),
+        route("pendapatan/:id", "routes/pendapatan/detail.tsx"),
         // route("pendapatan/:id/edit", "routes/pendapatan/edit.tsx"),
       ]),
     ]),

@@ -36,10 +36,10 @@ export function Welcome() {
         {" "}
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
           {" "}
-          {/* <h1 className="text-2xl font-bold text-blue-600">
+          <h1 className="text-2xl font-bold text-blue-600">
             {" "}
-            BillingISP{" "}
-          </h1>{" "} */}
+            <a href="/login">Ter@Net</a>{" "}
+          </h1>{" "}
           <div className="flex gap-4 text-sm md:gap-8 md:text-base">
             {" "}
             <a href="#home" className="hover:text-blue-600">
