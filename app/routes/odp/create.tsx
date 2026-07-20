@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { createArea } from "~/api/area";
 
-export default function CreateAreaPage() {
+export default function CreateOdpPage() {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");

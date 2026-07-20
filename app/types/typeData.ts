@@ -147,3 +147,27 @@ export interface CustomerOption {
 
   diskon: number;
 }
+
+export interface Pendapatan {
+  id: string;
+  totalMasuk: number;
+  deskripsi: string;
+  metode: string;
+  createdAt: string;
+  updatedAt: string;
+  pembayaran: Pembayaran[];
+}
+
+export interface PendapatanResponse {
+  pendapatan: Pendapatan[];
+}
+
+export interface Pendapatan {
+  id: string;
+  totalMasuk: number;
+  deskripsi: string;
+  metode: string;
+  createdAt: string;
+  updatedAt: string;
+  pembayaran: Pembayaran[];
+}
