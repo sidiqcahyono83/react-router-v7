@@ -21,7 +21,7 @@ export async function login(username: string, password: string) {
 }
 
 export async function me() {
-  const res = await fetch("http://localhost:3001/auth/me", {
+  const res = await fetch(`${API}/auth/me`, {
     credentials: "include",
   });
 
@@ -31,8 +31,8 @@ export async function me() {
 
   const data = await res.json();
 
-  // console.log("STATUS:", res.status);
-  // console.log("DATA:", data);
+  console.log("STATUS:", res.status);
+  console.log("DATA:", data);
 
   return data;
 }

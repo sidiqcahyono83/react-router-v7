@@ -1,34 +1,31 @@
 import { api } from "~/lib/axios";
-import { useContext } from "react";
-import { AuthContext } from "~/context/AuthContext";
-
 
 export type LoginPayload = {
   username: string;
   password: string;
 };
 
+export type User = {
+  id: string;
+  username: string;
+  fullname: string;
+  level: string;
+};
+
+// 1. Send 1 single object { username, password }
 export async function login(data: LoginPayload) {
   const response = await api.post("/auth/login", data);
   return response.data;
 }
 
-export async function me() {
+// 2. Fetch active user profile
+export async function me(): Promise<User> {
   const response = await api.get("/auth/me");
   return response.data;
 }
 
+// 3. Logout
 export async function logout() {
   const response = await api.post("/auth/logout");
   return response.data;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth harus digunakan di dalam AuthProvider");
-  }
-
-  return context;
 }
