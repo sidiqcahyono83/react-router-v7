@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 
-import { Pencil, Users } from "lucide-react";
+import { MapIcon, Pencil, Users } from "lucide-react";
 
 import { getOdpId } from "~/api/odp";
 
@@ -64,14 +64,14 @@ export default function OdpDetail() {
             <div>
               <p className="text-sm text-slate-500">Passive Splitter</p>
 
-              <p className="font-semibold">{odp.pasiveSpliter ?? "-"}</p>
+              <p className="font-semibold">{odp.passiveSpliter ?? "-"}</p>
             </div>
 
             <div>
               <p className="text-sm text-slate-500">Total Customer</p>
 
               <p className="font-semibold text-blue-600">
-                {odp.customer?.length ?? 0}
+                {odp._count?.customers ?? 0}
               </p>
             </div>
           </div>
@@ -88,9 +88,20 @@ export default function OdpDetail() {
             <div>
               <p className="text-slate-500">Customer Terhubung</p>
 
-              <h2 className="text-4xl font-bold">
-                {odp.customer?.length ?? 0}
-              </h2>
+              <h3 className="text-4xl font-bold">
+                {odp._count?.customers ?? 0}
+              </h3>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="rounded-full bg-blue-100 p-4">
+              <MapIcon className="text-blue-600" />
+            </div>
+
+            <div>
+              <p className="text-slate-500">Area</p>
+
+              <h3 className="text-4xl font-bold">{odp.area?.name ?? "-"}</h3>
             </div>
           </div>
         </div>
@@ -115,16 +126,16 @@ export default function OdpDetail() {
                 <th className="px-4 py-3 text-left">Aksi</th>
               </tr>
             </thead>
-            <pre>{JSON.stringify(odp.customer, null, 2)}</pre>
-            {/* <tbody>
-              {odp.customer.length === 0 ? (
+            {/* <pre>{JSON.stringify(odp.customers, null, 2)}</pre> */}
+            <tbody>
+              {odp.customers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-slate-500">
                     Belum ada customer.
                   </td>
                 </tr>
               ) : (
-                odp.customer.map((customer: any, index: number) => (
+                odp.customers.map((customer: any, index: number) => (
                   <tr key={customer.id} className="border-b hover:bg-slate-50">
                     <td className="px-4 py-4">{index + 1}</td>
 
@@ -134,7 +145,7 @@ export default function OdpDetail() {
 
                     <td className="px-4 py-4">{customer.username}</td>
 
-                    <td className="px-4 py-4">{customer.phonenumber}</td>
+                    <td className="px-4 py-4">{customer.phoneNumber}</td>
 
                     <td className="px-4 py-4">
                       <span
@@ -159,7 +170,7 @@ export default function OdpDetail() {
                   </tr>
                 ))
               )}
-            </tbody> */}
+            </tbody>
           </table>
         </div>
       </div>

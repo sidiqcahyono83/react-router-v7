@@ -1,5 +1,13 @@
+import {
+  CircleAlert,
+  CircleStop,
+  Eye,
+  Pencil,
+  ShieldAlert,
+  User,
+  Wifi,
+} from "lucide-react";
 import { Link } from "react-router";
-import { Eye, Pencil, Wifi, ShieldAlert, User } from "lucide-react";
 
 interface Props {
   loading: boolean;
@@ -66,7 +74,7 @@ export default function CustomerTable({ loading, data }: Props) {
                       <p className="font-semibold">{customer.fullname}</p>
 
                       <p className="text-sm text-slate-500">
-                        @{customer.username}
+                        {customer.username}
                       </p>
                     </div>
                   </div>
@@ -78,18 +86,41 @@ export default function CustomerTable({ loading, data }: Props) {
                   </span>
                 </td>
 
-                <td className="px-5 py-4">{customer.area?.name}</td>
+                <td className="px-5 py-4">
+                  <p className="font-semibold">{customer.area?.name}</p>
+                  <p className="text-sm text-slate-500">
+                    {customer.odp?.name}
+                    {" - "}
+                    {customer.odp?.passiveSpliter}
+                  </p>
+                </td>
 
                 <td className="px-5 py-4">
-                  {customer.status === "aktif" ? (
+                  {customer.status === "ACTIVE" && (
                     <span className="inline-flex items-center gap-2 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
                       <Wifi size={16} />
-                      Aktif
+                      ACTIVE
                     </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-2 rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-700">
+                  )}
+
+                  {customer.status === "SUSPENDED" && (
+                    <span className="inline-flex items-center gap-2 rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-700">
                       <ShieldAlert size={16} />
-                      Isolir
+                      SUSPENDED
+                    </span>
+                  )}
+
+                  {customer.status === "TERMINATED" && (
+                    <span className="inline-flex items-center gap-2 rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-700">
+                      <CircleStop size={16} />
+                      TERMINATED
+                    </span>
+                  )}
+
+                  {customer.status === "PENDING" && (
+                    <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
+                      <CircleAlert size={16} />
+                      PENDING
                     </span>
                   )}
                 </td>

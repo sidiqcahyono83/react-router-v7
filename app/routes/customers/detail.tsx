@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router";
+import { Link, useParams } from "react-router";
 import { getCustomerId } from "~/api/customers";
+import { formatIDR } from "~/types/toIdr";
 
 export default function CustomerDetail() {
   const { id } = useParams();
@@ -58,7 +59,7 @@ export default function CustomerDetail() {
 
               <tr>
                 <td className="py-2 font-medium">ODP</td>
-                <td>{customer.odp?.name}</td>
+                <td>{customer.odp?.name ?? "-"}</td>
               </tr>
 
               <tr>
@@ -75,18 +76,20 @@ export default function CustomerDetail() {
           <table className="w-full text-sm">
             <thead>
               <tr>
+                <th className="text-left">No</th>
                 <th className="text-left">Periode</th>
 
-                <th>Total</th>
+                <th className="text-left">Total</th>
               </tr>
             </thead>
-
+            {/* <pre>{JSON.stringify(customer.payments, null, 2)}</pre> */}
             <tbody>
-              {customer.pembayaran.map((p: any) => (
+              {customer.payments.map((p: any, i: number) => (
                 <tr key={p.id} className="border-t">
-                  <td>{new Date(p.periode).toLocaleDateString("id-ID")}</td>
+                  <td>{i + 1}</td>
+                  <td>{p.periode}</td>
 
-                  <td>Rp {p.totalBayar.toLocaleString("id-ID")}</td>
+                  <td className="text-left">{formatIDR(p.totalBayar ?? 0)}</td>
                 </tr>
               ))}
             </tbody>

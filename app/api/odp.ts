@@ -1,5 +1,3 @@
-import type { string } from "zod";
-
 const API = import.meta.env.VITE_API_URL;
 
 export async function getOdp(params: {
@@ -39,7 +37,7 @@ export async function getOdpId(id: string) {
 export interface OdpPayload {
   name: string;
   rasio?: string | null;
-  pasiveSpliter?: string | null;
+  passiveSpliter?: string | null;
   areaId?: string | null;
   customerIds?: string[];
 }

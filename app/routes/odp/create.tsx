@@ -10,7 +10,7 @@ export default function CreateOdpPage() {
 
   const [name, setName] = useState("");
   const [rasio, setRasio] = useState("");
-  const [pasiveSpliter, setPasiveSpliter] = useState("");
+  const [passiveSpliter, setPassiveSpliter] = useState("");
   const [areaId, setAreaId] = useState("");
   const [customerIds, setCustomerIds] = useState<string[]>([]);
   const [customerSearch, setCustomerSearch] = useState("");
@@ -67,7 +67,7 @@ export default function CreateOdpPage() {
       await createOdp({
         name,
         rasio,
-        pasiveSpliter,
+        passiveSpliter,
         areaId,
         customerIds,
       });
@@ -124,8 +124,8 @@ export default function CreateOdpPage() {
             <label className="mb-2 block font-medium">Passive Splitter</label>
 
             <input
-              value={pasiveSpliter}
-              onChange={(e) => setPasiveSpliter(e.target.value)}
+              value={passiveSpliter}
+              onChange={(e) => setPassiveSpliter(e.target.value)}
               className="w-full rounded-xl border p-3"
               placeholder="PLC 1:8"
               required

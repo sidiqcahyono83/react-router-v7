@@ -41,10 +41,11 @@ export default function OdpTable({ loading, data }: Props) {
               <th className="px-5 py-4">Name</th>
               <th className="px-5 py-4">Area</th>
               <th className="px-5 py-4">Customer</th>
+              <th className="px-5 py-4">Passive Spliter</th>
               <th className="px-5 py-4">Aksi</th>
             </tr>
           </thead>
-          <pre>{JSON.stringify(data, null, 2)}</pre>
+          {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
           <tbody>
             {data.map((odp, index) => (
               <tr
@@ -67,11 +68,18 @@ export default function OdpTable({ loading, data }: Props) {
                     </div>
                   </div>
                 </td>
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <p className="font-semibold">{odp.passiveSpliter}</p>
+                    </div>
+                  </div>
+                </td>
 
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="font-semibold">{odp._count.customer}</p>
+                      <p className="font-semibold">{odp._count.customers}</p>
                     </div>
                   </div>
                 </td>

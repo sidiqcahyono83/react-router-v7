@@ -1,35 +1,31 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
-import { getOdpId, updateOdp } from "~/api/odp";
 import { getAreas } from "~/api/area";
+import { getOdpId, updateOdp } from "~/api/odp";
 import CustomerSearch from "../customers/CustomerSearch";
 
 export default function OdpEdit() {
   const { id } = useParams();
-
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
-
   const [form, setForm] = useState<any>(null);
-
   const [areas, setAreas] = useState<any[]>([]);
-
   const [selectedCustomers, setSelectedCustomers] = useState<any[]>([]);
 
   useEffect(() => {
-    loadData();
+    if (id) {
+      loadData();
+    }
   }, [id]);
 
   async function loadData() {
-    if (!id) return;
-
     try {
       setLoading(true);
 
       const [odp, areaResult] = await Promise.all([
-        getOdpId(id),
+        getOdpId(id!),
         getAreas({
           page: 1,
           limit: 1000,
@@ -37,11 +33,20 @@ export default function OdpEdit() {
         }),
       ]);
 
-      setForm(odp);
-
       setAreas(areaResult.data);
 
-      setSelectedCustomers(odp.customer ?? []);
+      setForm({
+        id: odp.id,
+        name: odp.name,
+        rasio: odp.rasio,
+        passiveSpliter: odp.passiveSpliter,
+        areaId: odp.areaId ?? "",
+      });
+
+      setSelectedCustomers(odp.customers ?? []);
+    } catch (err) {
+      console.error(err);
+      alert("Gagal mengambil data ODP");
     } finally {
       setLoading(false);
     }
@@ -53,19 +58,23 @@ export default function OdpEdit() {
     try {
       setLoading(true);
 
-      await updateOdp(id!, {
+      const payload = {
         name: form.name,
         rasio: form.rasio,
-        pasiveSpliter: form.pasiveSpliter,
-        areaId: form.areaId,
-
+        passiveSpliter: form.passiveSpliter,
+        areaId: form.areaId || null,
         customerIds: selectedCustomers.map((c) => c.id),
-      });
+      };
+
+      console.log(payload);
+
+      await updateOdp(id!, payload);
 
       alert("ODP berhasil diperbarui");
 
       navigate(`/admin/odp/${id}`);
     } catch (err: any) {
+      console.error(err);
       alert(err.message);
     } finally {
       setLoading(false);
@@ -83,37 +92,33 @@ export default function OdpEdit() {
     >
       <h1 className="text-3xl font-bold">Edit ODP</h1>
 
-      {/* Nama */}
-
       <div>
         <label className="mb-2 block font-medium">Nama ODP</label>
 
         <input
-          value={form.name ?? ""}
+          className="w-full rounded-xl border p-3"
+          value={form.name}
           onChange={(e) =>
             setForm({
               ...form,
               name: e.target.value,
             })
           }
-          className="w-full rounded-xl border p-3"
         />
       </div>
-
-      {/* Area */}
 
       <div>
         <label className="mb-2 block font-medium">Area</label>
 
         <select
-          value={form.areaId ?? ""}
+          className="w-full rounded-xl border p-3"
+          value={form.areaId}
           onChange={(e) =>
             setForm({
               ...form,
               areaId: e.target.value,
             })
           }
-          className="w-full rounded-xl border p-3"
         >
           <option value="">Pilih Area</option>
 
@@ -125,12 +130,11 @@ export default function OdpEdit() {
         </select>
       </div>
 
-      {/* Rasio */}
-
       <div>
         <label className="mb-2 block font-medium">Rasio Splitter</label>
 
         <input
+          className="w-full rounded-xl border p-3"
           value={form.rasio ?? ""}
           onChange={(e) =>
             setForm({
@@ -138,46 +142,40 @@ export default function OdpEdit() {
               rasio: e.target.value,
             })
           }
-          className="w-full rounded-xl border p-3"
         />
       </div>
-
-      {/* Passive */}
 
       <div>
         <label className="mb-2 block font-medium">Passive Splitter</label>
 
         <input
-          value={form.pasiveSpliter ?? ""}
+          className="w-full rounded-xl border p-3"
+          value={form.passiveSpliter ?? ""}
           onChange={(e) =>
             setForm({
               ...form,
-              pasiveSpliter: e.target.value,
+              passiveSpliter: e.target.value,
             })
           }
-          className="w-full rounded-xl border p-3"
         />
       </div>
-
-      {/* Customer */}
 
       <CustomerSearch
         selected={selectedCustomers}
         onChange={setSelectedCustomers}
       />
 
-      {/* Tombol */}
-
       <div className="flex justify-end gap-3">
         <button
           type="button"
-          onClick={() => navigate(-1)}
           className="rounded-xl border px-6 py-3"
+          onClick={() => navigate(-1)}
         >
           Batal
         </button>
 
         <button
+          type="submit"
           disabled={loading}
           className="rounded-xl bg-blue-600 px-6 py-3 text-white"
         >
