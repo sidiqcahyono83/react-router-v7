@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { Eye, Pencil, Wifi, ShieldAlert, User } from "lucide-react";
-import { formatBulanTahun, formatIDR } from "~/types/toIdr";
+// import { formatBulanTahun, formatIDR } from "~/types/toIdr";
 import { formatDate } from "date-fns/format";
 
 interface Props {
@@ -50,7 +50,7 @@ export default function PembayaranTable({ loading, data }: Props) {
               <th className="px-5 py-4 text-center">Aksi</th>
             </tr>
           </thead>
-          {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
+          <pre>{JSON.stringify(data, null, 2)}</pre>
           <tbody>
             {data.map((pembayaran, index) => (
               <tr
@@ -71,7 +71,7 @@ export default function PembayaranTable({ loading, data }: Props) {
                       </p>
 
                       <p className="text-sm text-slate-500">
-                        {pembayaran.user.username}
+                        {/* {pembayaran.user?.username} */}
                       </p>
                     </div>
                   </div>
@@ -80,17 +80,17 @@ export default function PembayaranTable({ loading, data }: Props) {
                 <td className="px-5 py-4">
                   <div>
                     <p className="font-semibold">
-                      {formatIDR(pembayaran.totalBayar)}
+                      {/* {formatIDR(pembayaran.totalBayar)} */}
                     </p>
                     <p className="text-sm text-slate-500">
-                      {formatIDR(pembayaran.customer.paket.harga)}
+                      {/* {formatIDR(pembayaran.customer.paket.harga)} */}
                     </p>
                   </div>
                 </td>
 
                 <td className="px-5 py-4">{pembayaran.customer.area?.name}</td>
                 <td className="px-5 py-4">
-                  {formatBulanTahun(pembayaran.periode)}
+                  {/* {formatBulanTahun(pembayaran.periode)} */}
                 </td>
                 <td className="px-5 py-4">{pembayaran.metode}</td>
 

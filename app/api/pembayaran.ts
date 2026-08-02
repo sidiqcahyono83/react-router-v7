@@ -17,7 +17,7 @@ export async function getPembayarans({
   search?: string;
 }) {
   const res = await fetch(
-    `${API}/pembayaran?page=${page}&limit=${limit}&search=${search}`,
+    `${API}/payment?page=${page}&limit=${limit}&search=${search}`,
     {
       credentials: "include",
     },
@@ -29,7 +29,7 @@ export async function getPembayarans({
 }
 
 export async function getPembayaranById(id: string) {
-  const res = await fetch(`${API}/pembayaran/${id}`, {
+  const res = await fetch(`${API}/payment/${id}`, {
     credentials: "include",
   });
 
@@ -41,7 +41,7 @@ export async function getPembayaranById(id: string) {
 }
 
 export async function createPembayaran(formData: FormData) {
-  const res = await fetch(`${API}/pembayaran`, {
+  const res = await fetch(`${API}/payment`, {
     method: "POST",
     credentials: "include",
     body: formData,

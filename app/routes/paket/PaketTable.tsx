@@ -1,5 +1,5 @@
+import { Eye, Pencil, User } from "lucide-react";
 import { Link } from "react-router";
-import { Eye, Pencil, Wifi, ShieldAlert, User } from "lucide-react";
 import { formatIDR } from "~/types/toIdr";
 
 interface Props {
@@ -45,7 +45,7 @@ export default function PaketTable({ loading, data }: Props) {
               <th className="px-5 py-4">Aksi</th>
             </tr>
           </thead>
-
+          {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
           <tbody>
             {data.map((paket, index) => (
               <tr
@@ -71,7 +71,7 @@ export default function PaketTable({ loading, data }: Props) {
                 </td>
                 <td className="px-5 py-4">
                   <span className="px-3 py-1 text-sm font-medium text-gray-700">
-                    {paket._count.customer}
+                    {paket.customers.length} Customer
                   </span>
                 </td>
 

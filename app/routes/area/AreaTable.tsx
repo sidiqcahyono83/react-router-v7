@@ -1,6 +1,5 @@
+import { Eye, Pencil, User } from "lucide-react";
 import { Link } from "react-router";
-import { Eye, Pencil, Wifi, ShieldAlert, User } from "lucide-react";
-import { formatIDR } from "~/types/toIdr";
 
 interface Props {
   loading: boolean;
@@ -64,7 +63,7 @@ export default function AreaTable({ loading, data }: Props) {
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="font-semibold">{area._count.customer}</p>
+                      <p className="font-semibold">{area.customers.length}</p>
                     </div>
                   </div>
                 </td>
@@ -72,7 +71,7 @@ export default function AreaTable({ loading, data }: Props) {
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="font-semibold">{area._count.odp}</p>
+                      <p className="font-semibold">{area.Odp?.length || 0}</p>
                     </div>
                   </div>
                 </td>
