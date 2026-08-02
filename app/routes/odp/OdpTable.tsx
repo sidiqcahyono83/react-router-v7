@@ -1,6 +1,5 @@
+import { Eye, Pencil, User } from "lucide-react";
 import { Link } from "react-router";
-import { Eye, Pencil, Wifi, ShieldAlert, User } from "lucide-react";
-import { formatIDR } from "~/types/toIdr";
 
 interface Props {
   loading: boolean;
@@ -45,7 +44,7 @@ export default function OdpTable({ loading, data }: Props) {
               <th className="px-5 py-4">Aksi</th>
             </tr>
           </thead>
-          {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
+          <pre>{JSON.stringify(data, null, 2)}</pre>
           <tbody>
             {data.map((odp, index) => (
               <tr

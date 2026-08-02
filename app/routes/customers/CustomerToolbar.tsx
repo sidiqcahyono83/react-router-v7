@@ -1,5 +1,5 @@
-import { Link } from "react-router";
 import { Plus, Search } from "lucide-react";
+import { Link } from "react-router";
 
 interface Props {
   search: string;
@@ -19,7 +19,7 @@ export default function CustomerToolbar({ search, onSearch }: Props) {
             size={18}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
           />
-
+          <div className="flex items-center justify-between gap-4"></div>
           <input
             value={search}
             onChange={(e) => onSearch(e.target.value)}

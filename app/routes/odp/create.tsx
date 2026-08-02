@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
+import { getAreasAll } from "~/api/area";
+import { getCustomersAll } from "~/api/customers";
 import { createOdp } from "~/api/odp";
-import { getAreas, getAreasAll } from "~/api/area";
-import { getCustomers, getCustomersAll } from "~/api/customers";
 
 export default function CreateOdpPage() {
   const navigate = useNavigate();
@@ -13,6 +13,7 @@ export default function CreateOdpPage() {
   const [pasiveSpliter, setPasiveSpliter] = useState("");
   const [areaId, setAreaId] = useState("");
   const [customerIds, setCustomerIds] = useState<string[]>([]);
+  const [customerSearch, setCustomerSearch] = useState("");
 
   const [areas, setAreas] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
@@ -26,8 +27,8 @@ export default function CreateOdpPage() {
           getAreasAll(),
           getCustomersAll(),
         ]);
-        console.log(areaData.data);
-        console.log(customerData.data);
+        // console.log(areaData.data);
+        // console.log(customerData.data);
         setAreas(areaData);
         setCustomers(customerData);
       } catch (err) {
@@ -47,6 +48,16 @@ export default function CreateOdpPage() {
     setCustomerIds(values);
   }
 
+  const filteredCustomers = customers.filter((customer) => {
+    const keyword = customerSearch.toLowerCase();
+
+    return (
+      customer.fullname?.toLowerCase().includes(keyword) ||
+      customer.username?.toLowerCase().includes(keyword) ||
+      customer.area?.name?.toLowerCase().includes(keyword)
+    );
+  });
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -58,6 +69,7 @@ export default function CreateOdpPage() {
         rasio,
         pasiveSpliter,
         areaId,
+        customerIds,
       });
 
       alert("ODP berhasil ditambahkan");
@@ -142,27 +154,41 @@ export default function CreateOdpPage() {
           <div>
             <label className="mb-2 block font-medium">Customer</label>
 
-            <div className="max-h-72 space-y-2 overflow-y-auto rounded-xl border p-4">
-              {customers.length === 0 ? (
-                <p className="text-sm text-gray-500">Belum ada customer.</p>
+            <input
+              type="text"
+              value={customerSearch}
+              onChange={(e) => setCustomerSearch(e.target.value)}
+              placeholder="Cari nama, username, atau area..."
+              className="mb-3 w-full rounded-xl border p-3 focus:border-blue-500 focus:outline-none"
+            />
+
+            <div className="max-h-72 overflow-y-auto rounded-xl border">
+              {filteredCustomers.length === 0 ? (
+                <p className="p-4 text-center text-sm text-gray-500">
+                  Customer tidak ditemukan
+                </p>
               ) : (
-                customers.map((customer) => (
+                filteredCustomers.map((customer) => (
                   <label
                     key={customer.id}
-                    className="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-gray-50"
+                    className="flex cursor-pointer items-center gap-3 border-b p-3 hover:bg-gray-50 last:border-b-0"
                   >
                     <input
                       type="checkbox"
                       checked={customerIds.includes(customer.id)}
                       onChange={() => handleCustomerCheck(customer.id)}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4"
                     />
 
-                    <div>
+                    <div className="flex-1">
                       <p className="font-medium">{customer.fullname}</p>
 
+                      <p className="text-sm text-gray-500">
+                        {customer.username}
+                      </p>
+
                       {customer.area && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-xs text-blue-600">
                           {customer.area.name}
                         </p>
                       )}

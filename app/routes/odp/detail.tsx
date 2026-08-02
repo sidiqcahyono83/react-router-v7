@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 
-import { Users, Pencil } from "lucide-react";
+import { Pencil, Users } from "lucide-react";
 
 import { getOdpId } from "~/api/odp";
 
@@ -71,7 +71,7 @@ export default function OdpDetail() {
               <p className="text-sm text-slate-500">Total Customer</p>
 
               <p className="font-semibold text-blue-600">
-                {odp._count.customer}
+                {odp.customer?.length ?? 0}
               </p>
             </div>
           </div>
@@ -88,7 +88,9 @@ export default function OdpDetail() {
             <div>
               <p className="text-slate-500">Customer Terhubung</p>
 
-              <h2 className="text-4xl font-bold">{odp._count.customer}</h2>
+              <h2 className="text-4xl font-bold">
+                {odp.customer?.length ?? 0}
+              </h2>
             </div>
           </div>
         </div>
@@ -113,8 +115,8 @@ export default function OdpDetail() {
                 <th className="px-4 py-3 text-left">Aksi</th>
               </tr>
             </thead>
-
-            <tbody>
+            <pre>{JSON.stringify(odp.customer, null, 2)}</pre>
+            {/* <tbody>
               {odp.customer.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-slate-500">
@@ -157,7 +159,7 @@ export default function OdpDetail() {
                   </tr>
                 ))
               )}
-            </tbody>
+            </tbody> */}
           </table>
         </div>
       </div>
