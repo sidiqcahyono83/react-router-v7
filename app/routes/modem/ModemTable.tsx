@@ -1,6 +1,5 @@
+import { Eye, Pencil, User } from "lucide-react";
 import { Link } from "react-router";
-import { Eye, Pencil, Wifi, ShieldAlert, User } from "lucide-react";
-import { formatIDR } from "~/types/toIdr";
 
 interface Props {
   loading: boolean;

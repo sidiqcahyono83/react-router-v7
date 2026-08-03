@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+
 import { createOlt } from "~/api/olt";
 import CustomerSearch from "../customers/CustomerSearch";
+
+interface CustomerOption {
+  id: string;
+  fullname: string;
+  username: string;
+}
 
 export default function CreateOltPage() {
   const navigate = useNavigate();
@@ -10,7 +17,11 @@ export default function CreateOltPage() {
   const [username, setUsername] = useState("");
   const [serial, setSerial] = useState("");
   const [password, setPassword] = useState("");
-  const [selectedCustomers, setSelectedCustomers] = useState<any[]>([]);
+
+  const [selectedCustomers, setSelectedCustomers] = useState<CustomerOption[]>(
+    [],
+  );
+
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -20,18 +31,18 @@ export default function CreateOltPage() {
       setLoading(true);
 
       await createOlt({
-        name: name,
-        username: username,
-        serial: serial,
-        password: password,
-       
+        name,
+        username,
+        serial,
+        password,
+        customerIds: selectedCustomers.map((customer) => customer.id),
       });
 
       alert("OLT berhasil ditambahkan");
 
       navigate("/admin/olt");
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
       setLoading(false);
     }
@@ -45,6 +56,7 @@ export default function CreateOltPage() {
         onSubmit={handleSubmit}
         className="space-y-6 rounded-2xl bg-white p-8 shadow"
       >
+        {/* Nama OLT */}
         <div>
           <label className="mb-2 block font-medium">Nama OLT</label>
 
@@ -52,11 +64,14 @@ export default function CreateOltPage() {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-xl border p-3 focus:border-blue-500 focus:outline-none"
             placeholder="ZTE-C100"
+            className="w-full rounded-xl border p-3 focus:border-blue-500 focus:outline-none"
+            disabled={loading}
             required
           />
         </div>
+
+        {/* Username */}
         <div>
           <label className="mb-2 block font-medium">Username</label>
 
@@ -64,49 +79,62 @@ export default function CreateOltPage() {
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="w-full rounded-xl border p-3 focus:border-blue-500 focus:outline-none"
             placeholder="Administrator"
+            className="w-full rounded-xl border p-3 focus:border-blue-500 focus:outline-none"
+            disabled={loading}
             required
           />
         </div>
+
+        {/* Serial */}
         <div>
-          <label className="mb-2 block font-medium">Serial</label>
+          <label className="mb-2 block font-medium">Serial Number</label>
 
           <input
             type="text"
             value={serial}
             onChange={(e) => setSerial(e.target.value)}
-            className="w-full rounded-xl border p-3 focus:border-blue-500 focus:outline-none"
             placeholder="G08XYTRQWE"
+            className="w-full rounded-xl border p-3 focus:border-blue-500 focus:outline-none"
+            disabled={loading}
             required
           />
         </div>
+
+        {/* Password */}
         <div>
           <label className="mb-2 block font-medium">Password</label>
 
           <input
-            type="text"
+            type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl border p-3 focus:border-blue-500 focus:outline-none"
             placeholder="Password"
+            className="w-full rounded-xl border p-3 focus:border-blue-500 focus:outline-none"
+            disabled={loading}
             required
           />
         </div>
-        {/* Customer */}
 
-        <CustomerSearch
-          selected={selectedCustomers}
-          onChange={setSelectedCustomers}
-        />
+        {/* Customer */}
+        <div>
+          <label className="mb-2 block font-medium">
+            Customer yang menggunakan OLT
+          </label>
+
+          <CustomerSearch
+            selected={selectedCustomers}
+            onChange={setSelectedCustomers}
+          />
+        </div>
 
         {/* Tombol */}
-
         <div className="flex justify-end gap-3">
           <button
             type="button"
             onClick={() => navigate("/admin/olt")}
-            className="rounded-xl border px-6 py-3"
+            className="rounded-xl border px-6 py-3 hover:bg-gray-100"
+            disabled={loading}
           >
             Batal
           </button>
@@ -114,7 +142,7 @@ export default function CreateOltPage() {
           <button
             type="submit"
             disabled={loading}
-            className="rounded-xl bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 disabled:opacity-50"
+            className="rounded-xl bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? "Menyimpan..." : "Simpan"}
           </button>

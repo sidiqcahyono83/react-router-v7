@@ -8,7 +8,7 @@ export async function getAllOlt() {
   return res.json();
 }
 
-export async function getOlt(params: {
+export async function getInvoice(params: {
   page: number;
   limit: number;
   search?: string;
@@ -19,39 +19,45 @@ export async function getOlt(params: {
     search: params.search ?? "",
   });
 
-  const res = await fetch(`${API}/olts?${query}`, {
+  const res = await fetch(`${API}/invoice?${query}`, {
     credentials: "include",
   });
 
   if (!res.ok) {
-    throw new Error("Gagal mengambil data OLT");
+    throw new Error("Gagal mengambil data Invoice");
   }
 
   return res.json();
 }
 
-export async function getOltId(id: string) {
-  const res = await fetch(`${API}/olts/${id}`, {
+export async function getInvoiceId(id: string) {
+  const res = await fetch(`${API}/invoice/${id}`, {
     credentials: "include",
   });
 
   if (!res.ok) {
-    throw new Error("Gagal mengambil OLT");
+    throw new Error("Gagal mengambil Invoice");
   }
 
   return res.json();
 }
 
 export interface OltPayload {
-  name: string;
-  username: string | null;
-  serial?: string | null;
-  password?: string | null;
-  customerIds?: string[];
+  invoiceNumber: string;
+  customerId: string | null;
+  periode: Date | null;
+  bulan: number | null;
+  tahun: number | null;
+  subtotal: number | null;
+  diskon: number | null;
+  total: number | null;
+  dueDate: Date | null;
+  status: string | null;
+  paidAt?: Date | null;
 }
 
-export async function updateOlt(id: string, data: OltPayload) {
-  const res = await fetch(`${API}/olts/${id}`, {
+export async function updateInvoice(id: string, data: OltPayload) {
+  const res = await fetch(`${API}/invoices/${id}`, {
     method: "PATCH",
     credentials: "include",
     headers: {
@@ -63,21 +69,27 @@ export async function updateOlt(id: string, data: OltPayload) {
   const result = await res.json();
 
   if (!res.ok) {
-    throw new Error(result.message || "Gagal mengupdate OLT.");
+    throw new Error(result.message || "Gagal mengupdate Invoice.");
   }
 
   return result.data ?? result;
 }
 
 export interface OltPayloadInput {
-  name: string;
-  username: string;
-  serial: string;
-  password: string;
+  invoiceNumber: string;
+  customerId: string;
+  periode: Date;
+  bulan: number;
+  tahun: number;
+  subtotal: number;
+  diskon: number;
+  total: number;
+  dueDate: Date;
+  status: string;
   customerIds: string[];
 }
 
-export async function createOlt(data: OltPayloadInput) {
+export async function generateInvoice(data: OltPayloadInput) {
   const res = await fetch(`${API}/olts`, {
     method: "POST",
     credentials: "include",

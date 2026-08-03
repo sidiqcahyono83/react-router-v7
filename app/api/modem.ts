@@ -53,7 +53,7 @@ export async function updateModem(id: string, data: any) {
   return result;
 }
 
-export async function createModem(data: { name: string }) {
+export async function createModem(data: { name: string; serial: string }) {
   const res = await fetch(`${API}/modems`, {
     method: "POST",
     credentials: "include",

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 
-import { Users, Pencil } from "lucide-react";
+import { Pencil, Users } from "lucide-react";
 
 import { getOltId } from "~/api/olt";
 
@@ -71,7 +71,7 @@ export default function OltDetail() {
               <p className="text-sm text-slate-500">Total Customer</p>
 
               <p className="font-semibold text-blue-600">
-                {olt._count.customer}
+                {olt._count.customers}
               </p>
             </div>
           </div>
@@ -88,7 +88,7 @@ export default function OltDetail() {
             <div>
               <p className="text-slate-500">Customer Terhubung</p>
 
-              <h2 className="text-4xl font-bold">{olt._count.customer}</h2>
+              <h2 className="text-4xl font-bold">{olt._count.customers}</h2>
             </div>
           </div>
         </div>
@@ -115,14 +115,14 @@ export default function OltDetail() {
             </thead>
 
             <tbody>
-              {olt.customer.length === 0 ? (
+              {olt.customers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-slate-500">
                     Belum ada customer.
                   </td>
                 </tr>
               ) : (
-                olt.customer.map((customer: any, index: number) => (
+                olt.customers.map((customer: any, index: number) => (
                   <tr key={customer.id} className="border-b hover:bg-slate-50">
                     <td className="px-4 py-4">{index + 1}</td>
 

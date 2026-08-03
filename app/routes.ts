@@ -31,6 +31,12 @@ export default [
         route("pembayaran/:id", "routes/pembayaran/detail.tsx"),
         route("pembayaran/:id/edit", "routes/pembayaran/edit.tsx"),
 
+        //INVOICE
+        route("invoice", "routes/invoice/Invoice.tsx"),
+        route("invoice/create", "routes/invoice/create.tsx"),
+        route("invoice/:id", "routes/invoice/detail.tsx"),
+        route("invoice/:id/edit", "routes/invoice/edit.tsx"),
+
         //Paket
         route("paket", "routes/paket/paket.tsx"),
         route("paket/create", "routes/paket/create.tsx"),

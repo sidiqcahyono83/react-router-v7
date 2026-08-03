@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { Eye, Pencil, Wifi, ShieldAlert, User } from "lucide-react";
 // import { formatBulanTahun, formatIDR } from "~/types/toIdr";
 import { formatDate } from "date-fns/format";
+import { formatBulanTahun, formatIDR } from "~/types/toIdr";
 
 interface Props {
   loading: boolean;
@@ -26,10 +27,10 @@ export default function PembayaranTable({ loading, data }: Props) {
       <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
         <User className="mx-auto mb-4 text-slate-400" size={48} />
 
-        <h3 className="text-lg font-semibold">Data Customer Kosong</h3>
+        <h3 className="text-lg font-semibold">Data Pembayaran Kosong</h3>
 
         <p className="mt-2 text-slate-500">
-          Belum ada customer yang ditambahkan.
+          Belum ada Pembayaran yang ditambahkan.
         </p>
       </div>
     );
@@ -43,14 +44,14 @@ export default function PembayaranTable({ loading, data }: Props) {
             <tr className="text-left text-sm font-semibold text-slate-600">
               <th className="px-5 py-4">#</th>
               <th className="px-5 py-4">Customer</th>
-              <th className="px-5 py-4">Paket</th>
-              <th className="px-5 py-4">Area</th>
+              <th className="px-5 py-4">Invoice</th>
+              <th className="px-5 py-4">Amount</th>
               <th className="px-5 py-4">Periode</th>
               <th className="px-5 py-4">Metode</th>
               <th className="px-5 py-4 text-center">Aksi</th>
             </tr>
           </thead>
-          <pre>{JSON.stringify(data, null, 2)}</pre>
+          {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
           <tbody>
             {data.map((pembayaran, index) => (
               <tr
@@ -71,7 +72,7 @@ export default function PembayaranTable({ loading, data }: Props) {
                       </p>
 
                       <p className="text-sm text-slate-500">
-                        {/* {pembayaran.user?.username} */}
+                        {pembayaran.invoice.invoiceNumber}
                       </p>
                     </div>
                   </div>
@@ -80,7 +81,7 @@ export default function PembayaranTable({ loading, data }: Props) {
                 <td className="px-5 py-4">
                   <div>
                     <p className="font-semibold">
-                      {/* {formatIDR(pembayaran.totalBayar)} */}
+                      {formatIDR(pembayaran.amount)}
                     </p>
                     <p className="text-sm text-slate-500">
                       {/* {formatIDR(pembayaran.customer.paket.harga)} */}
@@ -88,11 +89,11 @@ export default function PembayaranTable({ loading, data }: Props) {
                   </div>
                 </td>
 
-                <td className="px-5 py-4">{pembayaran.customer.area?.name}</td>
+                <td className="px-5 py-4">{pembayaran.method}</td>
                 <td className="px-5 py-4">
-                  {/* {formatBulanTahun(pembayaran.periode)} */}
+                  {formatBulanTahun(pembayaran.invoice?.periode)}
                 </td>
-                <td className="px-5 py-4">{pembayaran.metode}</td>
+                <td className="px-5 py-4">{pembayaran.gateway}</td>
 
                 <td className="px-5 py-4">
                   <div className="flex justify-center gap-2">
