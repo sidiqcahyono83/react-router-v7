@@ -27,7 +27,9 @@ export default function InvoiceTable({ loading, data }: Props) {
 
         <h3 className="text-lg font-semibold">Data Invoice Kosong</h3>
 
-        <p className="mt-2 text-slate-500">Belum ada Invoice yang ditambahkan.</p>
+        <p className="mt-2 text-slate-500">
+          Belum ada Invoice yang ditambahkan.
+        </p>
       </div>
     );
   }
@@ -70,43 +72,57 @@ export default function InvoiceTable({ loading, data }: Props) {
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="font-semibold">{invoice.customer?.fullname}</p>
-                      <p className="text-sm text-slate-500">{invoice.customer?.status}</p>
+                      <p className="font-semibold">
+                        {invoice.customer?.fullname}
+                      </p>
+                      <p className="text-sm text-slate-500">
+                        {invoice.customer?.status}
+                      </p>
                     </div>
                   </div>
                 </td>
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="font-semibold">{invoice.bulan}/{invoice.tahun}</p>
+                      <p className="font-semibold">
+                        {invoice.bulan}/{invoice.tahun}
+                      </p>
                     </div>
                   </div>
                 </td>
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="font-semibold">{invoice.subtotal?.toLocaleString('id-ID')}</p>
+                      <p className="font-semibold">
+                        {invoice.subtotal?.toLocaleString("id-ID")}
+                      </p>
                     </div>
                   </div>
                 </td>
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="font-semibold">{invoice.diskon?.toLocaleString('id-ID')}</p>
+                      <p className="font-semibold">
+                        {invoice.diskon?.toLocaleString("id-ID")}
+                      </p>
                     </div>
                   </div>
                 </td>
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="font-semibold">{invoice.total?.toLocaleString('id-ID')}</p>
+                      <p className="font-semibold">
+                        {invoice.total?.toLocaleString("id-ID")}
+                      </p>
                     </div>
                   </div>
                 </td>
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="font-semibold">{formatBulanTahun(invoice.dueDate)}</p>
+                      <p className="font-semibold">
+                        {formatBulanTahun(invoice.dueDate)}
+                      </p>
                     </div>
                   </div>
                 </td>

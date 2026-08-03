@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 
 import { getPembayarans } from "~/api/pembayaran";
 
-import PembayaranToolbar from "./PembayaranToolbar";
-import PembayaranTable from "./PembayaranTable";
-import PembayaranPagination from "./PembayaranPagination";
 import Pagination from "~/components/ui/Pagination";
+import PembayaranTable from "./PembayaranTable";
+import PembayaranToolbar from "./PembayaranToolbar";
 
 export default function PembayaranPage() {
   const [loading, setLoading] = useState(true);

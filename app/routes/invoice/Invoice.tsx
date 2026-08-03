@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 
-import InvoiceToolbar from "./InvoiceToolbar";
-import InvoiceTable from "./InvoiceTable";
-import InvoicePagination from "./InvoicePagination";
 import { getInvoice } from "~/api/invoice";
+import InvoicePagination from "./InvoicePagination";
+import InvoiceTable from "./InvoiceTable";
+import InvoiceToolbar from "./InvoiceToolbar";
 
 export default function AreaPage() {
   const [invoice, setInvoice] = useState<any[]>([]);

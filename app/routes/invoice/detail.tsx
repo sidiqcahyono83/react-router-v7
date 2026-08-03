@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router";
+import { Link, useParams } from "react-router";
 import { getModemId } from "~/api/modem";
-import { formatIDR } from "~/types/toIdr";
 
 export default function ModemDetail() {
   const { id } = useParams();

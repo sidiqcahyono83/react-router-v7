@@ -1,5 +1,5 @@
-import { Link } from "react-router";
 import { Plus, Search } from "lucide-react";
+import { Link } from "react-router";
 
 interface Props {
   search: string;

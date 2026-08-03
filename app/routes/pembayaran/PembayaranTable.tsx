@@ -1,7 +1,6 @@
+import { Eye, Pencil, User } from "lucide-react";
 import { Link } from "react-router";
-import { Eye, Pencil, Wifi, ShieldAlert, User } from "lucide-react";
 // import { formatBulanTahun, formatIDR } from "~/types/toIdr";
-import { formatDate } from "date-fns/format";
 import { formatBulanTahun, formatIDR } from "~/types/toIdr";
 
 interface Props {
