@@ -1,6 +1,6 @@
 import { Eye, Pencil, User } from "lucide-react";
 import { Link } from "react-router";
-import { formatBulanTahun } from "~/types/toIdr";
+import { formatBulanTahun, formatTanggal, formatTanggalIndonesia } from "~/types/toIdr";
 
 interface Props {
   loading: boolean;
@@ -121,7 +121,8 @@ export default function InvoiceTable({ loading, data }: Props) {
                   <div className="flex items-center gap-3">
                     <div>
                       <p className="font-semibold">
-                        {formatBulanTahun(invoice.dueDate)}
+                        {/* <pre>{JSON.stringify(invoice.dueDate, null, 2)}</pre> */}
+                        {formatTanggal(invoice.dueDate)}
                       </p>
                     </div>
                   </div>
