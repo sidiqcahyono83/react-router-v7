@@ -43,6 +43,12 @@ export default [
         route("paket/:id", "routes/paket/detail.tsx"),
         route("paket/:id/edit", "routes/paket/edit.tsx"),
 
+        //PPPoE
+        route("pppoe", "routes/pppoe/DashboardPage.tsx"),
+        route("pppoe/create", "routes/pppoe/create.tsx"),
+        route("pppoe/:id", "routes/pppoe/detail.tsx"),
+        route("pppoe/:id/edit", "routes/pppoe/edit.tsx"),
+
         //Area
         route("area", "routes/area/area.tsx"),
         route("area/create", "routes/area/create.tsx"),
