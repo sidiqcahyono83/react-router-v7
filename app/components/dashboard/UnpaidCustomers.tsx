@@ -16,26 +16,14 @@ export default function UnpaidCustomers({ data }: any) {
         </thead>
 
         <tbody>
-          {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
-          {data.length > 0 ? (
-            data.map((item: any, i: number) => (
-              <tr key={item.id} className="border-b hover:bg-slate-50">
-                <td className="py-3">{i + 1}</td>
+          <tr>
+            <td>1</td>
+            <td>2</td>
+            <td>3</td>
+            <td className="text-right">4</td>
+          </tr>
 
-                <td className="py-3">{item.fullname}</td>
-                <td className="py-3">{item.area?.name ?? "-"}</td>
-                <td className="text-right">
-                  {formatIDR(item.paket?.harga) ?? "-"}
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={4} className="py-6 text-center text-slate-500">
-                Belum bayar.
-              </td>
-            </tr>
-          )}
+
         </tbody>
       </table>
     </div>

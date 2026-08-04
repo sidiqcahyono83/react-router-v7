@@ -16,28 +16,14 @@ export default function NewCustomers({ data }: any) {
 
         <tbody>
           {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
-          {data.length > 0 ? (
-            data.map((item: any, i: number) => (
-              <tr key={item.id} className="border-b hover:bg-slate-50">
-                <td className="py-3">{i + 1}</td>
 
-                <td className="py-3">{item.fullname}</td>
-
-                <td className="py-3">{item.paket?.name ?? "-"}</td>
-
-                <td className="py-3">
-                  {new Date(item.createdAt).toLocaleDateString("id-ID")}
-                </td>
-                <td className="py-3">{item.user?.id ?? "-"}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={4} className="py-6 text-center text-slate-500">
-                Belum ada customer baru.
-              </td>
-            </tr>
-          )}
+          <tr>
+            <td>1</td>
+            <td>2</td>
+            <td>3</td>
+            <td>4</td>
+            <td>5</td>
+          </tr>
         </tbody>
       </table>
     </div>

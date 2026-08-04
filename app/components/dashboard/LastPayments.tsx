@@ -13,15 +13,11 @@ export default function LatestPayments({ data }: any) {
         </thead>
 
         <tbody>
-          {data.map((item: any) => (
-            <tr key={item.id} className="border-b">
-              <td className="py-3">{item.customer}</td>
-
-              <td>{item.paket}</td>
-
-              <td>Rp {item.total.toLocaleString("id-ID")}</td>
-            </tr>
-          ))}
+          <tr className="border-b">
+            <td className="py-3">1</td>
+            <td>2</td>
+            <td>3</td>
+          </tr>
         </tbody>
       </table>
     </div>
