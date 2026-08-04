@@ -76,21 +76,13 @@ export async function updateInvoice(id: string, data: OltPayload) {
 }
 
 export interface OltPayloadInput {
-  invoiceNumber: string;
-  customerId: string;
-  periode: Date;
   bulan: number;
   tahun: number;
-  subtotal: number;
-  diskon: number;
-  total: number;
   dueDate: Date;
-  status: string;
-  customerIds: string[];
 }
 
 export async function generateInvoice(data: OltPayloadInput) {
-  const res = await fetch(`${API}/olts`, {
+  const res = await fetch(`${API}/invoice`, {
     method: "POST",
     credentials: "include",
     headers: {
@@ -102,8 +94,20 @@ export async function generateInvoice(data: OltPayloadInput) {
   const result = await res.json();
 
   if (!res.ok) {
-    throw new Error(result.message ?? "Gagal menambahkan OLT");
+    throw new Error(result.message ?? "Gagal generate Invoice");
   }
 
   return result;
+}
+
+export async function getInvoiceDashboard() {
+  const res = await fetch(`${API}/invoice/dashboard`, {
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    throw new Error("Gagal mengambil dashboard invoice");
+  }
+
+  return res.json();
 }

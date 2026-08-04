@@ -32,7 +32,7 @@ export default [
         route("pembayaran/:id/edit", "routes/pembayaran/edit.tsx"),
 
         //INVOICE
-        route("invoice", "routes/invoice/Invoice.tsx"),
+        route("invoice", "routes/invoice/dashboardInvoice.tsx"),
         route("invoice/create", "routes/invoice/create.tsx"),
         route("invoice/:id", "routes/invoice/detail.tsx"),
         route("invoice/:id/edit", "routes/invoice/edit.tsx"),
