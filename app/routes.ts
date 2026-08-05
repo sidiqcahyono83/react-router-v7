@@ -82,7 +82,7 @@ export default [
 
         //Pendapatan
         // Pendapatan
-        route("pendapatan", "routes/pendapatan/dashboard.tsx"),
+        route("pendapatan", "routes/pendapatan/Dashboard.tsx"),
         route("pendapatan/create", "routes/pendapatan/create.tsx"),
       ]),
     ]),
