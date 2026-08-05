@@ -1,4 +1,5 @@
 import {
+  BanknoteArrowUp,
   BarChart3,
   ChevronsLeftRightEllipsis,
   CreditCard,
@@ -84,14 +85,9 @@ export const navigation: MenuGroup[] = [
     title: "Transaksi",
     items: [
       {
-        title: "Pembayaran",
-        href: "/admin/pembayaran",
-        icon: CreditCard,
-      },
-      {
         title: "Payment",
         href: "/admin/payment",
-        icon: LucidePiggyBank,
+        icon: BanknoteArrowUp,
       },
       {
         title: "Invoice",
@@ -109,7 +105,7 @@ export const navigation: MenuGroup[] = [
         children: [
           {
             title: "Pendapatan",
-            href: "/admin/laporan/pendapatan",
+            href: "/admin/pendapatan",
             icon: CreditCard,
           },
           {

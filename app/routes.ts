@@ -81,10 +81,9 @@ export default [
         route("olt/:id/edit", "routes/olt/edit.tsx"),
 
         //Pendapatan
-        route("laporan/pendapatan", "routes/pendapatan/pendapatan.tsx"),
-        // route("pendapatan/create", "routes/pendapatan/create.tsx"),
-        route("pendapatan/:id", "routes/pendapatan/detail.tsx"),
-        // route("pendapatan/:id/edit", "routes/pendapatan/edit.tsx"),
+        // Pendapatan
+        route("pendapatan", "routes/pendapatan/dashboard.tsx"),
+        route("pendapatan/create", "routes/pendapatan/create.tsx"),
       ]),
     ]),
   ]),
