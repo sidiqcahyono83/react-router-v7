@@ -3,11 +3,17 @@ import { Link, useParams } from "react-router";
 import {
   ArrowLeft,
   Ban,
+  Check,
   Clock3,
+  Copy,
+  ExternalLink,
   Loader2,
+  MessageCircle,
   Pencil,
   RefreshCw,
+  Send,
   Wallet,
+  X,
 } from "lucide-react";
 import { cancelInvoice, expireInvoice, getInvoiceId } from "~/api/invoice";
 import { formatTanggal } from "~/types/toIdr";
@@ -48,6 +54,33 @@ export default function InvoiceDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<"" | "cancel" | "expire">("");
+
+  // State modal "Kirim Tagihan"
+  const [showShare, setShowShare] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const paymentLink = invoice
+    ? `${window.location.origin}/bayar/${invoice.id}`
+    : "";
+
+  const copyLink = () => {
+    if (!paymentLink) return;
+    navigator.clipboard
+      .writeText(paymentLink)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => setError("Gagal menyalin link."));
+  };
+
+  const waText = invoice
+    ? `Halo ${invoice.customer?.fullname ?? ""}, berikut tagihan internet Anda:%0A%0AInvoice: ${invoice.invoiceNumber}%0APeriode: ${invoice.bulan}/${invoice.tahun}%0ATotal: Rp ${Number(
+      invoice.total ?? 0
+    ).toLocaleString("id-ID")}%0A%0ASilakan bayar melalui link berikut:%0A${paymentLink}`
+    : "";
+
+  const waUrl = `https://wa.me/?text=${encodeURIComponent(waText)}`;
 
   const load = () => {
     if (!id) return;
@@ -191,6 +224,15 @@ export default function InvoiceDetail() {
             >
               <Wallet size={16} /> Buat Pembayaran
             </Link>
+          )}
+
+          {status !== "PAID" && status !== "CANCELLED" && (
+            <button
+              onClick={() => setShowShare(true)}
+              className="flex items-center gap-2 rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+            >
+              <Send size={16} /> Kirim Tagihan
+            </button>
           )}
 
           {canExpire && (
@@ -377,6 +419,69 @@ export default function InvoiceDetail() {
           </div>
         </div>
       </div>
+
+      {/* Modal: Kirim Tagihan */}
+      {showShare && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setShowShare(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold">Kirim Tagihan</h2>
+              <button
+                onClick={() => setShowShare(false)}
+                className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p className="text-sm text-slate-500">
+              Bagikan link ini ke customer. Customer bisa membayar sendiri
+              melalui Midtrans (Virtual Account, QRIS, dll).
+            </p>
+
+            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs text-slate-400">Link Pembayaran</p>
+              <p className="mt-1 break-all text-sm font-medium text-blue-700">
+                {paymentLink}
+              </p>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-2">
+              <button
+                onClick={copyLink}
+                className="flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700"
+              >
+                {copied ? <Check size={16} /> : <Copy size={16} />}
+                {copied ? "Tersalin!" : "Salin Link"}
+              </button>
+
+              <a
+                href={waUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-center gap-2 rounded-xl bg-green-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-600"
+              >
+                <MessageCircle size={16} /> Kirim via WhatsApp
+              </a>
+
+              <a
+                href={paymentLink}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+              >
+                <ExternalLink size={16} /> Buka Link
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

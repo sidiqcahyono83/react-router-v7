@@ -453,3 +453,34 @@ export function attachmentUrl(url: string) {
   if (/^https?:\/\//.test(url)) return url;
   return `${API}${url}`;
 }
+
+// ------------------------------------------------------------
+// PAYMENT GATEWAY MIDTRANS (customer / tagihan)
+// Endpoint: POST /payments/charge (tanpa auth — dipakai customer)
+// ------------------------------------------------------------
+
+/** POST /payments/charge — buat transaksi Midtrans Snap untuk sebuah invoice */
+export async function chargePaymentGateway(invoiceId: string) {
+  const res = await fetch(`${API}/payments/charge`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ invoiceId }),
+  });
+
+  const result = await res.json();
+
+  if (!res.ok) {
+    console.error("[payments/charge] error", res.status, result);
+    throw new Error(result.message ?? "Gagal membuat pembayaran gateway.");
+  }
+
+  return result; // { message, token, redirect_url, payment }
+}
+
+/** Helper: link publik untuk customer membayar tagihan */
+export function paymentLink(invoiceId: string) {
+  return `${window.location.origin}/bayar/${invoiceId}`;
+}

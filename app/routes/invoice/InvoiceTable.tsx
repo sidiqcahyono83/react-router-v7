@@ -1,4 +1,4 @@
-import { CircleDollarSign, Eye, Pencil, User } from "lucide-react";
+import { CircleDollarSign, Eye, EyeIcon, Pencil, User } from "lucide-react";
 import { Link } from "react-router";
 import { formatTanggal } from "~/types/toIdr";
 
@@ -113,6 +113,12 @@ export default function InvoiceTable({ loading, data }: Props) {
                       className="rounded-lg border p-2 text-blue-600 transition hover:bg-blue-50"
                     >
                       <CircleDollarSign size={18} />
+                    </Link>
+                    <Link
+                      to={`/admin/invoice/${invoice.id}`}
+                      className="rounded-lg border p-2 text-blue-600 transition hover:bg-blue-50"
+                    >
+                      <EyeIcon size={18} />
                     </Link>
 
                     <Link
