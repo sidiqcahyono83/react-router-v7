@@ -1,4 +1,4 @@
-import { Eye, Pencil, User } from "lucide-react";
+import { CircleDollarSign, Eye, Pencil, User } from "lucide-react";
 import { Link } from "react-router";
 import { formatTanggal } from "~/types/toIdr";
 
@@ -109,10 +109,10 @@ export default function InvoiceTable({ loading, data }: Props) {
                 <td className="px-5 py-4">
                   <div className="flex justify-baseline gap-2">
                     <Link
-                      to={`/admin/invoice/${invoice.id}`}
+                      to={`/admin/payment/create/${invoice.id}`}
                       className="rounded-lg border p-2 text-blue-600 transition hover:bg-blue-50"
                     >
-                      <Eye size={18} />
+                      <CircleDollarSign size={18} />
                     </Link>
 
                     <Link

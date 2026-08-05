@@ -34,6 +34,10 @@ export default [
         //PAYMENT
         route("payment", "routes/payment/dashboard.tsx"),
         route("payment/create", "routes/payment/create.tsx"),
+        route(
+          "payment/create/:invoiceId",
+          "routes/payment/create-invoiceId.tsx",
+        ),
         route("payment/verify", "routes/payment/verify.tsx"),
 
         //INVOICE

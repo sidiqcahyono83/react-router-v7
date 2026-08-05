@@ -7,6 +7,7 @@ import {
   Loader2,
   Pencil,
   RefreshCw,
+  Wallet,
 } from "lucide-react";
 import { cancelInvoice, expireInvoice, getInvoiceId } from "~/api/invoice";
 import { formatTanggal } from "~/types/toIdr";
@@ -128,7 +129,7 @@ export default function InvoiceDetail() {
           {error || "Data invoice tidak tersedia atau sudah dihapus."}
         </p>
         <Link
-          to="/invoice"
+          to="/admin/invoice"
           className="mt-4 inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700"
         >
           <ArrowLeft size={16} /> Kembali ke Daftar Invoice
@@ -150,7 +151,7 @@ export default function InvoiceDetail() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link
-            to="/invoice"
+            to="/admin/invoice"
             className="rounded-lg border p-2 text-slate-500 transition hover:bg-slate-50"
             title="Kembali ke Dashboard Invoice"
           >
@@ -182,6 +183,15 @@ export default function InvoiceDetail() {
           >
             <Pencil size={16} /> Edit
           </Link>
+
+          {status === "UNPAID" && (
+            <Link
+              to={`/admin/payment/create/${invoice.id}`}
+              className="flex items-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-green-700"
+            >
+              <Wallet size={16} /> Buat Pembayaran
+            </Link>
+          )}
 
           {canExpire && (
             <button
