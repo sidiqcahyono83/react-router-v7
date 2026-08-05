@@ -18,7 +18,7 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 interface Props {
-  status: string;
+  status?: string | null;  // toleran
 }
 
 export default function PaymentStatusBadge({ status }: Props) {

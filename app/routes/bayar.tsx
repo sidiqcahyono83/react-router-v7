@@ -1,23 +1,44 @@
-import { useState } from "react";
+// ============================================================
+// Halaman publik: CUSTOMER membayar tagihan via Midtrans Snap
+//
+// PENTING (env frontend / .env):
+//   Vite HANYA mengekspos variabel berawalan VITE_ ke browser.
+//   Var "MIDTRANS_CLIENT_KEY" (tanpa VITE_) TIDAK akan terbaca di sini.
+//   Tambahkan di .env frontend:
+//     VITE_MIDTRANS_CLIENT_KEY="SB-Mid-client-XDNIYVEvIbrXDpWl"
+//     VITE_MIDTRANS_ENV="sandbox"   // atau "production"
+//
+// Alur:
+//   klik Bayar → POST /payments/charge { invoiceId }
+//   → dapat { token, redirect_url, payment }
+//   → buka popup Snap (kalau client key ada), fallback redirect_url
+// ============================================================
+
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import {
+  BadgeCheck,
   CreditCard,
   ExternalLink,
   Loader2,
   Lock,
   RefreshCw,
-  ShieldCheck,
   Wallet,
 } from "lucide-react";
 import { chargePaymentGateway } from "~/api/payment";
+import { getInvoiceId } from "~/api/invoice";
 import { loadSnapScript, payWithSnap } from "~/lib/midtrans";
 import PaymentStatusBadge from "./payment/PaymentStatusBadge";
+
 const rupiah = (n: number) =>
   n.toLocaleString("id-ID", {
     style: "currency",
     currency: "IDR",
     minimumFractionDigits: 0,
   });
+
+const CLIENT_KEY = (import.meta.env.VITE_MIDTRANS_CLIENT_KEY ??
+  "") as string;
 
 interface ChargeResult {
   message?: string;
@@ -37,12 +58,44 @@ interface ChargeResult {
 export default function BayarInvoice() {
   const { invoiceId } = useParams();
 
+  // Info invoice (opsional — kalau endpoint butuh login admin dan customer
+  // tidak login, info ini di-skip dan halaman tetap bisa dipakai membayar)
+  const [invoice, setInvoice] = useState<any>(null);
+  const [loadingInvoice, setLoadingInvoice] = useState(true);
+
+  // Alur charge
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [charge, setCharge] = useState<ChargeResult | null>(null);
   const [snapMsg, setSnapMsg] = useState("");
 
+  useEffect(() => {
+    if (!invoiceId) return;
+
+    let active = true;
+    setLoadingInvoice(true);
+
+    getInvoiceId(invoiceId)
+      .then((res) => {
+        if (active) setInvoice(res?.data ?? res ?? null);
+      })
+      .catch(() => {
+        // 401 (butuh login admin) / 404 — info invoice tidak wajib,
+        // jangan blokir halaman pembayaran.
+        if (active) setInvoice(null);
+      })
+      .finally(() => {
+        if (active) setLoadingInvoice(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [invoiceId]);
+
   const payment = charge?.payment ?? null;
+  const isPaid =
+    String(invoice?.status ?? "").toUpperCase() === "PAID";
 
   const handlePay = async () => {
     if (!invoiceId) return;
@@ -56,14 +109,10 @@ export default function BayarInvoice() {
       const res: ChargeResult = await chargePaymentGateway(invoiceId);
       setCharge(res);
 
-      const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY as
-        | string
-        | undefined;
-
-      // 2. Buka popup Snap (kalau client key tersedia), kalau tidak → redirect
-      if (clientKey && res.token) {
+      // 2. Kalau client key tersedia → buka popup Snap
+      if (CLIENT_KEY && res.token) {
         try {
-          await loadSnapScript(clientKey);
+          await loadSnapScript(CLIENT_KEY);
 
           payWithSnap(res.token, {
             onSuccess: () =>
@@ -72,22 +121,36 @@ export default function BayarInvoice() {
               ),
             onPending: () =>
               setSnapMsg(
-                "Pembayaran sedang menunggu konfirmasi. Silakan selesaikan pembayaran Anda."
+                "Pembayaran menunggu konfirmasi. Silakan selesaikan pembayaran Anda."
               ),
             onError: () =>
               setSnapMsg("Terjadi kesalahan saat memproses pembayaran."),
             onClose: () =>
               setSnapMsg(
-                "Popup pembayaran ditutup. Anda bisa membayar lagi kapan saja."
+                "Popup ditutup. Anda bisa membayar lagi kapan saja."
               ),
           });
-        } catch (err) {
-          // Snap gagal dimuat → fallback buka halaman Midtrans di tab baru
-          console.error(err);
-          if (res.redirect_url) window.open(res.redirect_url, "_blank");
+          return;
+        } catch (snapErr) {
+          console.error("[snap] gagal memuat:", snapErr);
+          // lanjut ke fallback redirect_url
         }
-      } else if (res.redirect_url) {
+      } else if (!CLIENT_KEY) {
+        console.warn(
+          "[bayar] VITE_MIDTRANS_CLIENT_KEY belum di-set — pakai redirect_url."
+        );
+      }
+
+      // 3. Fallback: buka halaman pembayaran Midtrans di tab baru
+      if (res.redirect_url) {
         window.open(res.redirect_url, "_blank");
+        setSnapMsg(
+          "Halaman pembayaran Midtrans dibuka di tab baru. Selesaikan pembayaran di sana."
+        );
+      } else {
+        setSnapMsg(
+          "Pembayaran sudah dibuat (menunggu pembayaran). Silakan selesaikan sesuai metode yang dipilih."
+        );
       }
     } catch (err) {
       setError(
@@ -103,7 +166,6 @@ export default function BayarInvoice() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
       <div className="w-full max-w-md">
-        {/* Kartu tagihan */}
         <div className="overflow-hidden rounded-2xl bg-white shadow-lg">
           {/* Header */}
           <div className="bg-green-600 p-6 text-center text-white">
@@ -118,104 +180,140 @@ export default function BayarInvoice() {
 
           {/* Body */}
           <div className="space-y-4 p-6">
-            {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                {error}
-                {invoiceId && (
-                  <button
-                    onClick={handlePay}
-                    className="ml-2 inline-flex items-center gap-1 font-semibold underline underline-offset-2"
-                  >
-                    <RefreshCw size={13} /> Coba Lagi
-                  </button>
-                )}
-              </div>
-            )}
-
-            {snapMsg && (
-              <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-700">
-                {snapMsg}
-              </div>
-            )}
-
-            {/* Detail tagihan (setelah charge) */}
-            {payment && (
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Total Tagihan</span>
-                  <span className="text-xl font-bold text-green-700">
-                    {rupiah(Number(payment.amount) || 0)}
-                  </span>
-                </div>
-
-                <div className="mt-3 flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Metode</span>
-                  <span className="font-medium">
-                    {payment.method ?? "VIRTUAL_ACCOUNT"} ·{" "}
-                    {payment.gateway ?? "MIDTRANS"}
-                  </span>
-                </div>
-
-                <div className="mt-2 flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Status</span>
-                  <PaymentStatusBadge status={payment.status ?? ""} />
-                </div>
-
-                {payment.orderId && (
-                  <p className="mt-3 truncate text-xs text-slate-400">
-                    Order ID: {payment.orderId}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Tombol bayar */}
-            {!payment ? (
-              <button
-                onClick={handlePay}
-                disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" /> Menyiapkan
-                    pembayaran...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard size={18} /> Bayar Sekarang
-                  </>
-                )}
-              </button>
+            {/* Loading info invoice */}
+            {loadingInvoice ? (
+              <div className="h-24 animate-pulse rounded-xl bg-slate-100" />
             ) : (
               <>
-                <button
-                  onClick={handlePay}
-                  disabled={loading}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {loading ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : (
-                    <CreditCard size={18} />
-                  )}
-                  {loading ? "Menyiapkan..." : "Buka Pembayaran"}
-                </button>
+                {/* Tagihan sudah lunas */}
+                {invoice && isPaid ? (
+                  <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center">
+                    <BadgeCheck
+                      size={40}
+                      className="mx-auto mb-2 text-green-600"
+                    />
+                    <p className="font-bold text-green-800">
+                      Tagihan ini sudah LUNAS
+                    </p>
+                    <p className="mt-1 text-sm text-green-700">
+                      Terima kasih! Tidak perlu membayar lagi.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Info invoice (kalau bisa dimuat) */}
+                    {invoice && (
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                        <p className="text-sm text-slate-500">
+                          {invoice.invoiceNumber} · Periode {invoice.bulan}/
+                          {invoice.tahun}
+                        </p>
+                        <p className="mt-1 font-semibold text-slate-800">
+                          {invoice.customer?.fullname ?? "Customer"}
+                        </p>
+                        <div className="mt-3 flex items-center justify-between">
+                          <span className="text-sm text-slate-500">
+                            Total Tagihan
+                          </span>
+                          <span className="text-xl font-bold text-green-700">
+                            {rupiah(Number(invoice.total) || 0)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
-                {charge?.redirect_url && (
-                  <a
-                    href={charge.redirect_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-                  >
-                    <ExternalLink size={16} /> Buka Halaman Midtrans
-                  </a>
+                    {/* Detail pembayaran hasil charge */}
+                    {payment && (
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-500">
+                            Total Tagihan
+                          </span>
+                          <span className="text-xl font-bold text-green-700">
+                            {rupiah(Number(payment.amount) || 0)}
+                          </span>
+                        </div>
+
+                        <div className="mt-3 flex items-center justify-between text-sm">
+                          <span className="text-slate-500">Metode</span>
+                          <span className="font-medium">
+                            {payment.method ?? "VIRTUAL_ACCOUNT"} ·{" "}
+                            {payment.gateway ?? "MIDTRANS"}
+                          </span>
+                        </div>
+
+                        <div className="mt-2 flex items-center justify-between text-sm">
+                          <span className="text-slate-500">Status</span>
+                          <PaymentStatusBadge status={payment.status} />
+                        </div>
+
+                        {payment.orderId && (
+                          <p className="mt-3 truncate text-xs text-slate-400">
+                            Order ID: {payment.orderId}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Error */}
+                    {error && (
+                      <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                        <p>{error}</p>
+                        <button
+                          onClick={handlePay}
+                          disabled={loading}
+                          className="mt-2 inline-flex items-center gap-1.5 font-semibold text-red-800 underline underline-offset-2"
+                        >
+                          <RefreshCw size={13} /> Coba Lagi
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Pesan snap */}
+                    {snapMsg && (
+                      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-700">
+                        {snapMsg}
+                      </div>
+                    )}
+
+                    {/* Tombol bayar */}
+                    <button
+                      onClick={handlePay}
+                      disabled={loading}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />{" "}
+                          Menyiapkan pembayaran...
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard size={18} /> Bayar Sekarang
+                        </>
+                      )}
+                    </button>
+
+                    {charge?.redirect_url && (
+                      <a
+                        href={charge.redirect_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                      >
+                        <ExternalLink size={16} /> Buka Halaman Midtrans
+                      </a>
+                    )}
+
+                    <p className="text-center text-xs text-slate-400">
+                      Metode: Virtual Account (BCA/BNI/BRI/Mandiri), QRIS,
+                      Kartu Kredit &amp; lainnya.
+                    </p>
+                  </>
                 )}
               </>
             )}
 
-            {/* Keamanan */}
             <p className="flex items-center justify-center gap-1.5 text-center text-xs text-slate-400">
               <Lock size={12} />
               Transaksi diproses langsung oleh Midtrans. Data pembayaran Anda
@@ -224,7 +322,6 @@ export default function BayarInvoice() {
           </div>
         </div>
 
-        {/* Kembali */}
         <p className="mt-4 text-center text-sm text-slate-500">
           Punya pertanyaan?{" "}
           <Link to="/" className="font-medium text-green-700 hover:underline">

@@ -455,29 +455,89 @@ export function attachmentUrl(url: string) {
 }
 
 // ------------------------------------------------------------
-// PAYMENT GATEWAY MIDTRANS (customer / tagihan)
-// Endpoint: POST /payments/charge (tanpa auth — dipakai customer)
 // ------------------------------------------------------------
+// PAYMENT GATEWAY MIDTRANS (customer / tagihan)
+// Endpoint: POST /payments/charge (dipanggil dari halaman publik /bayar/:id)
+// ------------------------------------------------------------
+
+// Kandidat path — route gateway bisa di-mount dengan prefix yang
+// berbeda-beda di backend (mis. /payment-gateway, /payment, /gateway).
+// Fungsi ini mencoba satu per satu sampai ketemu yang bukan 404.
+const CHARGE_CANDIDATES = [
+  // Dipakai di index.ts backend: app.route("/paymentGetway", webhookRoute)
+  "/paymentGetway/payments/charge",
+  // Kandidat lain (kalau suatu saat mount path-nya diubah)
+  "/payments/charge",
+  "/payment-gateway/payments/charge",
+  "/payment/payments/charge",
+  "/gateway/payments/charge",
+  "/midtrans/payments/charge",
+  "/api/payments/charge",
+];
+
+/** Parsing JSON yang aman — kalau body bukan JSON (mis. teks "Not Found"), kembalikan pesan readable */
+async function safeJson(res: Response): Promise<any> {
+  try {
+    return await res.json();
+  } catch {
+    const text = await res.text().catch(() => "");
+    return {
+      message: `Server error (${res.status}): ${
+        text.trim().slice(0, 150) || "(body kosong — endpoint tidak ditemukan)"
+      }`,
+    };
+  }
+}
 
 /** POST /payments/charge — buat transaksi Midtrans Snap untuk sebuah invoice */
 export async function chargePaymentGateway(invoiceId: string) {
-  const res = await fetch(`${API}/payments/charge`, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ invoiceId }),
-  });
+  let lastError: Error | null = null;
 
-  const result = await res.json();
+  for (const path of CHARGE_CANDIDATES) {
+    try {
+      const res = await fetch(`${API}${path}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ invoiceId }),
+      });
 
-  if (!res.ok) {
-    console.error("[payments/charge] error", res.status, result);
-    throw new Error(result.message ?? "Gagal membuat pembayaran gateway.");
+      const result = await safeJson(res);
+
+      if (res.ok) {
+        return result; // { message, token, redirect_url, payment }
+      }
+
+      if (res.status === 404) {
+        // Path ini tidak ada → coba kandidat berikutnya
+        console.warn(`[payments/charge] 404 di ${path}`);
+        lastError = new Error(
+          `Endpoint ${path} tidak ditemukan (404). Periksa mounting route gateway di backend.`,
+        );
+        continue;
+      }
+
+      // 400/500 dll → tampilkan pesan asli (plus detail error dari backend)
+      console.error("[payments/charge] error", res.status, result);
+      const detail = result?.error ? ` (${result.error})` : "";
+      throw new Error(
+        `${result?.message ?? "Gagal membuat pembayaran gateway."}${detail}`,
+      );
+    } catch (err) {
+      // Kegagalan fetch/parse → simpan dan lanjut ke kandidat berikutnya
+      lastError =
+        err instanceof Error ? err : new Error("Gagal menghubungi server.");
+    }
   }
 
-  return result; // { message, token, redirect_url, payment }
+  throw (
+    lastError ??
+    new Error(
+      "Gagal membuat pembayaran gateway. Pastikan route /payments/charge terdaftar di backend.",
+    )
+  );
 }
 
 /** Helper: link publik untuk customer membayar tagihan */

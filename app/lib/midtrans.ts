@@ -30,9 +30,20 @@ export function snapScriptUrl() {
   return `${base}/snap/snap.js`;
 }
 
-/** Muat script Snap.js sekali (pakai data-client-key) */
-export function loadSnapScript(clientKey: string): Promise<void> {
+/**
+ * Muat script Snap.js sekali (pakai data-client-key).
+ * Menerima `string | undefined` supaya aman dipanggil dengan
+ * import.meta.env.VITE_MIDTRANS_CLIENT_KEY langsung.
+ */
+export function loadSnapScript(clientKey: string | undefined): Promise<void> {
   return new Promise((resolve, reject) => {
+    if (!clientKey) {
+      reject(
+        new Error("VITE_MIDTRANS_CLIENT_KEY belum di-set di .env frontend."),
+      );
+      return;
+    }
+
     const existing = document.getElementById("midtrans-snap-script");
 
     if (existing) {
