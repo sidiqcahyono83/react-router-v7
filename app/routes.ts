@@ -40,6 +40,13 @@ export default [
         ),
         route("payment/verify", "routes/payment/verify.tsx"),
 
+        //PENGELUARAN
+        route("pengeluaran", "routes/pengeluaran/Dashboard.tsx"),
+        route("pengeluaran/create/:id?", "routes/pengeluaran/create.tsx"),
+
+        // Buku Kas
+        route("bukukas", "routes/bukukas/dashboard.tsx"),
+
         //INVOICE
         route("invoice", "routes/invoice/dashboard.tsx"),
         route("invoice/create", "routes/invoice/create.tsx"),
@@ -80,10 +87,13 @@ export default [
         route("olt/:id", "routes/olt/detail.tsx"),
         route("olt/:id/edit", "routes/olt/edit.tsx"),
 
-        //Pendapatan
         // Pendapatan
         route("pendapatan", "routes/pendapatan/Dashboard.tsx"),
         route("pendapatan/create", "routes/pendapatan/create.tsx"),
+
+        //USERS
+        route("user", "routes/users/dashboard.tsx"),
+        route("user/create/:id?", "routes/users/create.tsx"),
       ]),
     ]),
   ]),
