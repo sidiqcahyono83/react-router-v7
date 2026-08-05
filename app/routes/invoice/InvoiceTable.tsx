@@ -52,7 +52,7 @@ export default function InvoiceTable({ loading, data }: Props) {
               <th className="px-5 py-4">Aksi</th>
             </tr>
           </thead>
-
+          {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
           <tbody>
             {data.map((invoice, index) => (
               <tr

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import {
+  ArrowRight,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -11,8 +12,8 @@ import {
   Wallet,
   X,
 } from "lucide-react";
-import { getPendapatan, type PendapatanItem } from "~/api/pendapatan";
-import { formatTanggal } from "~/types/toIdr";
+import { getPendapatan } from "~/api/pendapatan";
+import PendapatanTable from "./PendapatanTable";
 
 const LIMIT = 10;
 
@@ -47,21 +48,63 @@ const METODE_OPTIONS = [
   "MIDTRANS",
 ];
 
-function SumberBadge({ manual }: { manual: boolean }) {
-  return manual ? (
-    <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-      Pemasangan Baru
-    </span>
-  ) : (
-    <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
-      Dari Pembayaran
-    </span>
-  );
-}
+// ---------- Helper rentang tanggal ----------
+const toYMD = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+const fmtTanggal = (v: string) => {
+  if (!v) return "…";
+  const d = new Date(`${v}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return v;
+  return d.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const PRESETS: { key: string; label: string }[] = [
+  { key: "today", label: "Hari Ini" },
+  { key: "7d", label: "7 Hari" },
+  { key: "30d", label: "30 Hari" },
+  { key: "month", label: "Bulan Ini" },
+  { key: "year", label: "Tahun Ini" },
+];
+
+const presetRange = (key: string): [string, string] | null => {
+  const today = new Date();
+  let start: Date;
+
+  switch (key) {
+    case "today":
+      start = today;
+      break;
+    case "7d":
+      start = new Date(today);
+      start.setDate(start.getDate() - 6);
+      break;
+    case "30d":
+      start = new Date(today);
+      start.setDate(start.getDate() - 29);
+      break;
+    case "month":
+      start = new Date(today.getFullYear(), today.getMonth(), 1);
+      break;
+    case "year":
+      start = new Date(today.getFullYear(), 0, 1);
+      break;
+    default:
+      return null;
+  }
+
+  return [toYMD(start), toYMD(today)];
+};
 
 export default function PendapatanDashboard() {
-  const navigate = useNavigate();
-
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [bulan, setBulan] = useState("");
@@ -72,7 +115,7 @@ export default function PendapatanDashboard() {
 
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<PendapatanItem[]>([]);
+  const [data, setData] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -103,9 +146,20 @@ export default function PendapatanDashboard() {
     })
       .then((res) => {
         if (!active) return;
-        const raw = res?.data ?? [];
-        setData(Array.isArray(raw) ? raw : []);
-        setTotal(Number(res?.pagination?.total ?? 0));
+
+        // Tahan 2 bentuk response: array mentah atau { data, pagination }
+        const arr = Array.isArray(res)
+          ? res
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+
+        setData(arr);
+        setTotal(
+          Array.isArray(res)
+            ? arr.length
+            : Number(res?.pagination?.total ?? arr.length)
+        );
       })
       .catch((err) => {
         if (!active) return;
@@ -126,6 +180,31 @@ export default function PendapatanDashboard() {
     debouncedSearch || bulan || tahun || metode || tanggalAwal || tanggalAkhir
   );
 
+  // Aksi preset rentang tanggal
+  const applyPreset = (key: string) => {
+    const r = presetRange(key);
+    if (!r) return;
+    setTanggalAwal(r[0]);
+    setTanggalAkhir(r[1]);
+    setPage(1);
+  };
+
+  const isPresetActive = (key: string) => {
+    const r = presetRange(key);
+    return !!r && r[0] === tanggalAwal && r[1] === tanggalAkhir;
+  };
+
+  const resetRange = () => {
+    setTanggalAwal("");
+    setTanggalAkhir("");
+    setPage(1);
+  };
+
+  const invalidRange =
+    Boolean(tanggalAwal && tanggalAkhir) && tanggalAwal > tanggalAkhir;
+
+  const hasRange = Boolean(tanggalAwal || tanggalAkhir);
+
   const clearFilters = () => {
     setSearch("");
     setBulan("");
@@ -141,16 +220,19 @@ export default function PendapatanDashboard() {
   const to = Math.min(page * LIMIT, total);
 
   // Total nilai pendapatan pada halaman ini (client-side)
-  const pageTotal = data.reduce((sum, p) => sum + (Number(p.total) || 0), 0);
+  const pageTotal = data.reduce(
+    (sum, p) => sum + (Number(p.total) || 0),
+    0
+  );
 
   const inputCls =
-    "rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-200";
+    "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-200";
   const labelCls = "mb-1 block text-xs font-medium text-slate-500";
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* ===== Header ===== */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Pendapatan</h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -158,32 +240,32 @@ export default function PendapatanDashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <button
             onClick={() => setReloadKey((k) => k + 1)}
-            className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            className="flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
           >
             <RefreshCw size={16} /> Refresh
           </button>
 
           <Link
             to="/admin/pendapatan/create"
-            className="flex items-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-green-700"
+            className="flex items-center justify-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-green-700"
           >
             <Plus size={16} /> Tambah Pendapatan
           </Link>
         </div>
       </div>
 
-      {/* Ringkasan */}
+      {/* ===== Ringkasan ===== */}
       {!loading && data.length > 0 && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="flex items-center gap-3 rounded-xl border border-green-100 bg-green-50 p-4">
             <span className="rounded-lg bg-green-600 p-2.5">
               <TrendingUp className="text-white" size={20} />
             </span>
-            <div>
-              <p className="text-sm text-slate-500">
+            <div className="min-w-0">
+              <p className="truncate text-sm text-slate-500">
                 Total pendapatan halaman ini ({data.length} data)
               </p>
               <p className="text-xl font-bold text-green-700">
@@ -196,7 +278,7 @@ export default function PendapatanDashboard() {
             <span className="rounded-lg bg-slate-100 p-2.5">
               <Wallet className="text-slate-600" size={20} />
             </span>
-            <div>
+            <div className="min-w-0">
               <p className="text-sm text-slate-500">Jumlah transaksi</p>
               <p className="text-xl font-bold">{total.toLocaleString("id-ID")}</p>
             </div>
@@ -204,11 +286,11 @@ export default function PendapatanDashboard() {
         </div>
       )}
 
-      {/* Filter */}
+      {/* ===== Filter (responsif) ===== */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-6">
-          {/* Search */}
-          <div className="relative lg:col-span-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {/* Search — selebar 2 kolom */}
+          <div className="sm:col-span-2 lg:col-span-2">
             <label className={labelCls}>Cari</label>
             <div className="relative">
               <Search
@@ -219,7 +301,7 @@ export default function PendapatanDashboard() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Deskripsi / nama customer..."
-                className={`${inputCls} w-full pl-9 pr-8`}
+                className={`${inputCls} pl-9 pr-8`}
               />
               {search && (
                 <button
@@ -238,7 +320,7 @@ export default function PendapatanDashboard() {
             <select
               value={bulan}
               onChange={(e) => setBulan(e.target.value)}
-              className={`${inputCls} w-full`}
+              className={inputCls}
             >
               <option value="">Semua Bulan</option>
               {BULAN_NAMES.map((nama, i) => (
@@ -259,7 +341,7 @@ export default function PendapatanDashboard() {
               value={tahun}
               onChange={(e) => setTahun(e.target.value)}
               placeholder="cth: 2026"
-              className={`${inputCls} w-full`}
+              className={inputCls}
             />
           </div>
 
@@ -269,7 +351,7 @@ export default function PendapatanDashboard() {
             <select
               value={metode}
               onChange={(e) => setMetode(e.target.value)}
-              className={`${inputCls} w-full`}
+              className={inputCls}
             >
               <option value="">Semua</option>
               {METODE_OPTIONS.map((m) => (
@@ -280,32 +362,115 @@ export default function PendapatanDashboard() {
             </select>
           </div>
 
-          {/* Rentang tanggal */}
-          <div>
-            <label className={labelCls}>
-              <CalendarDays size={11} className="mr-1 inline" />
-              Rentang Tanggal
-            </label>
-            <div className="flex items-center gap-1.5">
-              <input
-                type="date"
-                value={tanggalAwal}
-                onChange={(e) => setTanggalAwal(e.target.value)}
-                className={`${inputCls} w-full`}
-              />
-              <span className="text-slate-400">–</span>
-              <input
-                type="date"
-                value={tanggalAkhir}
-                onChange={(e) => setTanggalAkhir(e.target.value)}
-                className={`${inputCls} w-full`}
-              />
+          {/* Rentang tanggal — selebar penuh di baris kedua */}
+          <div className="sm:col-span-2 lg:col-span-5">
+            <div
+              className={`rounded-xl border p-4 transition ${hasRange
+                ? "border-green-300 bg-gradient-to-br from-green-50 via-white to-emerald-50"
+                : "border-slate-200 bg-slate-50/60"
+                }`}
+            >
+              {/* Label + preset cepat */}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <CalendarDays
+                    size={13}
+                    className={hasRange ? "text-green-600" : "text-slate-400"}
+                  />
+                  Rentang Tanggal
+                </label>
+
+                <div className="flex flex-wrap items-center gap-1">
+                  {PRESETS.map((p) => {
+                    const active = isPresetActive(p.key);
+
+                    return (
+                      <button
+                        key={p.key}
+                        type="button"
+                        onClick={() => applyPreset(p.key)}
+                        className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition ${active
+                          ? "bg-green-600 text-white shadow-sm"
+                          : "bg-white text-slate-500 ring-1 ring-slate-200 hover:bg-green-50 hover:text-green-700 hover:ring-green-300"
+                          }`}
+                      >
+                        {p.label}
+                      </button>
+                    );
+                  })}
+
+                  {hasRange && (
+                    <button
+                      type="button"
+                      onClick={resetRange}
+                      className="rounded-full px-2.5 py-1 text-[11px] font-medium text-red-500 ring-1 ring-red-200 transition hover:bg-red-50"
+                    >
+                      ✕ Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Input tanggal awal – akhir */}
+              <div className="mt-3 grid grid-cols-1 items-center gap-2 sm:grid-cols-[1fr_auto_1fr]">
+                <div className="relative">
+                  <CalendarDays
+                    size={15}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-green-600"
+                  />
+                  <input
+                    type="date"
+                    value={tanggalAwal}
+                    onChange={(e) => setTanggalAwal(e.target.value)}
+                    className={`${inputCls} pl-9 [color-scheme:light]`}
+                  />
+                </div>
+
+                {/* Penghubung */}
+                <div className="hidden items-center justify-center sm:flex">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600">
+                    <ArrowRight size={14} />
+                  </span>
+                </div>
+                <p className="text-center text-xs font-medium text-slate-400 sm:hidden">
+                  sampai
+                </p>
+
+                <div className="relative">
+                  <CalendarDays
+                    size={15}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-green-600"
+                  />
+                  <input
+                    type="date"
+                    value={tanggalAkhir}
+                    onChange={(e) => setTanggalAkhir(e.target.value)}
+                    className={`${inputCls} pl-9 [color-scheme:light]`}
+                  />
+                </div>
+              </div>
+
+              {/* Info rentang / validasi */}
+              {hasRange && (
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  {invalidRange ? (
+                    <span className="rounded-md bg-red-100 px-2.5 py-1 text-xs font-medium text-red-600">
+                      ⚠️ Tanggal awal lebih besar dari tanggal akhir
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 rounded-md bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
+                      <CalendarDays size={12} />
+                      {fmtTanggal(tanggalAwal)} — {fmtTanggal(tanggalAkhir)}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {hasFilter && (
-          <div className="mt-3 flex items-center justify-between">
+          <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
             <p className="text-xs text-slate-400">Filter aktif</p>
             <button
               onClick={clearFilters}
@@ -317,120 +482,25 @@ export default function PendapatanDashboard() {
         )}
       </div>
 
-      {/* Tabel */}
-      <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          {loading ? (
-            <div className="animate-pulse space-y-4 p-6">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-12 rounded-lg bg-slate-200" />
-              ))}
-            </div>
-          ) : data.length === 0 ? (
-            <div className="p-10 text-center">
-              <TrendingUp className="mx-auto mb-4 text-slate-300" size={48} />
-              <h3 className="text-lg font-semibold">Data Pendapatan Kosong</h3>
-              <p className="mt-2 text-slate-500">
-                {hasFilter
-                  ? "Tidak ada data yang cocok dengan filter."
-                  : "Belum ada pendapatan yang dicatat."}
-              </p>
-              {hasFilter && (
-                <button
-                  onClick={clearFilters}
-                  className="mt-4 rounded-lg border px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
-                >
-                  Hapus Filter
-                </button>
-              )}
-            </div>
-          ) : (
-            <table className="min-w-full">
-              <thead className="border-b bg-green-200">
-                <tr className="text-left text-sm font-semibold text-slate-600">
-                  <th className="px-5 py-4">#</th>
-                  <th className="px-5 py-4">Deskripsi</th>
-                  <th className="px-5 py-4">Sumber</th>
-                  <th className="px-5 py-4">Invoice / Customer</th>
-                  <th className="px-5 py-4">Total</th>
-                  <th className="px-5 py-4">Dicatat Oleh</th>
-                  <th className="px-5 py-4">Tanggal</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.map((p, index) => {
-                  const manual = !p.paymentId;
+      {/* ===== Tabel / Kartu (responsif) ===== */}
+      <PendapatanTable
+        loading={loading}
+        data={data}
+        startIndex={(page - 1) * LIMIT}
+        hasFilter={hasFilter}
+        onClearFilter={clearFilters}
+      />
 
-                  return (
-                    <tr
-                      key={p.id}
-                      className="border-b transition hover:bg-slate-50"
-                    >
-                      <td className="px-5 py-4 font-medium">
-                        {(page - 1) * LIMIT + index + 1}
-                      </td>
-
-                      <td className="max-w-xs px-5 py-4">
-                        <p className="truncate font-semibold">
-                          {p.deskripsi || "-"}
-                        </p>
-                        {p.payment?.invoice?.invoiceNumber && (
-                          <p className="text-xs text-slate-400">
-                            {p.payment.invoice.invoiceNumber}
-                          </p>
-                        )}
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <SumberBadge manual={manual} />
-                        {!manual && p.payment?.method && (
-                          <p className="mt-1 text-xs text-slate-400">
-                            {p.payment.method}
-                          </p>
-                        )}
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <p className="font-semibold">
-                          {p.payment?.customer?.fullname ?? "-"}
-                        </p>
-                        {p.payment?.customer?.username && (
-                          <p className="text-sm text-slate-500">
-                            {p.payment.customer.username}
-                          </p>
-                        )}
-                      </td>
-
-                      <td className="px-5 py-4 font-bold text-green-700">
-                        {rupiah(Number(p.total) || 0)}
-                      </td>
-
-                      <td className="px-5 py-4 text-sm text-slate-600">
-                        {p.user?.fullname ?? p.user?.username ?? "-"}
-                      </td>
-
-                      <td className="px-5 py-4 text-sm text-slate-600">
-                        {formatTanggal(p.createdAt)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-
-      {/* Pagination */}
+      {/* ===== Pagination ===== */}
       {!loading && (
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-slate-500">
             {total === 0
               ? "Tidak ada data"
               : `Menampilkan ${from}–${to} dari ${total} pendapatan`}
           </p>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center gap-2 sm:justify-end">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
