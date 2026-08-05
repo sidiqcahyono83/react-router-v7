@@ -110,10 +110,9 @@ export async function getBukuKas(params: {
   if (params.bulan) query.set("bulan", String(params.bulan));
   if (params.tahun) query.set("tahun", String(params.tahun));
 
-  const { result } = await fetchFirstOk(
-    [`/buku-kas?${query}`, `/bukukas?${query}`],
-    { credentials: "include" },
-  );
+  const { result } = await fetchFirstOk([`/bukukas?${query}`], {
+    credentials: "include",
+  });
 
   // Bentuk response: { success, total, page, limit, data }
   // (total di root, bukan pagination.total)
@@ -131,10 +130,9 @@ export async function getBukuKas(params: {
 
 /** GET /buku-kas/summary/total — total masuk, keluar, saldo akhir */
 export async function getBukuKasSummary() {
-  const { result } = await fetchFirstOk(
-    ["/buku-kas/summary/total", "/bukukas/summary/total"],
-    { credentials: "include" },
-  );
+  const { result } = await fetchFirstOk(["/bukukas/summary/total"], {
+    credentials: "include",
+  });
 
   return {
     totalMasuk: Number(result?.totalMasuk ?? 0),
@@ -145,7 +143,7 @@ export async function getBukuKasSummary() {
 
 /** GET /buku-kas/:id — detail satu hari */
 export async function getBukuKasId(id: string) {
-  const { result } = await fetchFirstOk([`/buku-kas/${id}`, `/bukukas/${id}`], {
+  const { result } = await fetchFirstOk([`/bukukas/${id}`, `/bukukas/${id}`], {
     credentials: "include",
   });
 

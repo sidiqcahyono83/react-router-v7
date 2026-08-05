@@ -31,8 +31,8 @@ export async function me() {
 
   const data = await res.json();
 
-  console.log("STATUS:", res.status);
-  console.log("DATA:", data);
+  // console.log("STATUS:", res.status);
+  // console.log("DATA:", data);
 
   return data;
 }
