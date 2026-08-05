@@ -12,12 +12,18 @@ export async function getInvoice(params: {
   page: number;
   limit: number;
   search?: string;
+  status?: string; // tambahan: filter status (PAID, UNPAID, EXPIRED, dst.)
 }) {
   const query = new URLSearchParams({
     page: String(params.page),
     limit: String(params.limit),
     search: params.search ?? "",
   });
+
+  // hanya kirim ?status= kalau ada, supaya list "Semua" tidak ikut terfilter
+  if (params.status) {
+    query.set("status", params.status);
+  }
 
   const res = await fetch(`${API}/invoice?${query}`, {
     credentials: "include",

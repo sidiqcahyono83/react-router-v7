@@ -31,8 +31,13 @@ export default [
         route("pembayaran/:id", "routes/pembayaran/detail.tsx"),
         route("pembayaran/:id/edit", "routes/pembayaran/edit.tsx"),
 
+        //PAYMENT
+        route("payment", "routes/payment/dashboard.tsx"),
+        route("payment/create", "routes/payment/create.tsx"),
+        route("payment/verify", "routes/payment/verify.tsx"),
+
         //INVOICE
-        route("invoice", "routes/invoice/dashboardInvoice.tsx"),
+        route("invoice", "routes/invoice/dashboard.tsx"),
         route("invoice/create", "routes/invoice/create.tsx"),
         route("invoice/:id", "routes/invoice/detail.tsx"),
         route("invoice/:id/edit", "routes/invoice/edit.tsx"),

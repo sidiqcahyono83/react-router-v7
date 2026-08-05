@@ -1,6 +1,6 @@
 import { Eye, Pencil, User } from "lucide-react";
 import { Link } from "react-router";
-import { formatBulanTahun, formatTanggal, formatTanggalIndonesia } from "~/types/toIdr";
+import { formatTanggal } from "~/types/toIdr";
 
 interface Props {
   loading: boolean;
@@ -35,7 +35,6 @@ export default function InvoiceTable({ loading, data }: Props) {
   }
 
   return (
-    // <pre>{JSON.stringify(data, null, 2)}</pre>
     <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
       <div className="overflow-x-auto">
         <table className="min-w-full">
@@ -63,77 +62,50 @@ export default function InvoiceTable({ loading, data }: Props) {
                 <td className="px-5 py-4 font-medium">{index + 1}</td>
 
                 <td className="px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="font-semibold">{invoice.invoiceNumber}</p>
-                    </div>
-                  </div>
+                  <p className="font-semibold">{invoice.invoiceNumber}</p>
                 </td>
+
                 <td className="px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="font-semibold">
-                        {invoice.customer?.fullname}
-                      </p>
-                      <p className="text-sm text-slate-500">
-                        {invoice.customer?.status}
-                      </p>
-                    </div>
-                  </div>
+                  <p className="font-semibold">{invoice.customer?.fullname}</p>
+                  <p className="text-sm text-slate-500">
+                    {invoice.customer?.status}
+                  </p>
                 </td>
+
                 <td className="px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="font-semibold">
-                        {invoice.bulan}/{invoice.tahun}
-                      </p>
-                    </div>
-                  </div>
+                  <p className="font-semibold">
+                    {invoice.bulan}/{invoice.tahun}
+                  </p>
                 </td>
+
                 <td className="px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="font-semibold">
-                        {invoice.subtotal?.toLocaleString("id-ID")}
-                      </p>
-                    </div>
-                  </div>
+                  <p className="font-semibold">
+                    {invoice.subtotal?.toLocaleString("id-ID")}
+                  </p>
                 </td>
+
                 <td className="px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="font-semibold">
-                        {invoice.diskon?.toLocaleString("id-ID")}
-                      </p>
-                    </div>
-                  </div>
+                  <p className="font-semibold">
+                    {invoice.diskon?.toLocaleString("id-ID")}
+                  </p>
                 </td>
+
                 <td className="px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="font-semibold">
-                        {invoice.total?.toLocaleString("id-ID")}
-                      </p>
-                    </div>
-                  </div>
+                  <p className="font-semibold">
+                    {invoice.total?.toLocaleString("id-ID")}
+                  </p>
                 </td>
+
                 <td className="px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="font-semibold">
-                        {/* <pre>{JSON.stringify(invoice.dueDate, null, 2)}</pre> */}
-                        {formatTanggal(invoice.dueDate)}
-                      </p>
-                    </div>
-                  </div>
+                  <p className="font-semibold">
+                    {formatTanggal(invoice.dueDate)}
+                  </p>
                 </td>
+
                 <td className="px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="font-semibold">{invoice.status}</p>
-                    </div>
-                  </div>
+                  <p className="font-semibold">{invoice.status}</p>
                 </td>
+
                 <td className="px-5 py-4">
                   <div className="flex justify-baseline gap-2">
                     <Link

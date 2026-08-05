@@ -6,6 +6,7 @@ import {
   HouseWifi,
   LayoutDashboard,
   LogOut,
+  LucidePiggyBank,
   Package,
   Pin,
   Router,
@@ -86,6 +87,11 @@ export const navigation: MenuGroup[] = [
         title: "Pembayaran",
         href: "/admin/pembayaran",
         icon: CreditCard,
+      },
+      {
+        title: "Payment",
+        href: "/admin/payment",
+        icon: LucidePiggyBank,
       },
       {
         title: "Invoice",
