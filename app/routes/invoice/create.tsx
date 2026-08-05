@@ -115,7 +115,7 @@ export default function CreateInvoice() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link
-          to="/invoice"
+          to="/admin/invoice"
           className="rounded-lg border p-2 text-slate-500 transition hover:bg-slate-50"
           title="Kembali ke Dashboard Invoice"
         >

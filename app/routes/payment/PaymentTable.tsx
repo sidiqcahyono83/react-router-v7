@@ -128,7 +128,7 @@ export default function PaymentTable({ loading, data, onVerify }: Props) {
                   <div className="flex gap-2">
                     {payment.invoiceId && (
                       <Link
-                        to={`/invoice/${payment.invoiceId}`}
+                        to={`/admin/invoice/${payment.invoiceId}`}
                         className="rounded-lg border p-2 text-blue-600 transition hover:bg-blue-50"
                         title="Lihat Invoice"
                       >

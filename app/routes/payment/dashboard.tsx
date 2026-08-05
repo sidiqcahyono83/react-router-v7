@@ -8,13 +8,12 @@ import {
   Search,
   ShieldCheck,
 } from "lucide-react";
-import { getPayments } from "~/api/payment";
 import PaymentTable from "./PaymentTable";
+import { getAllPayments, getPayments } from "~/api/payment";
 
 const LIMIT = 10; // baris per halaman di tabel
 // Backend GET /payment belum mendukung query ?status=, jadi saat filter
-// status aktif kita ambil lebih banyak data lalu filter di sisi client.
-const FETCH_LIMIT = 200;
+// status aktif kita ambil SEMUA data lalu filter di sisi client.
 
 const STATUS_CHIPS: { label: string; query: string }[] = [
   { label: "Semua", query: "" },
@@ -55,16 +54,29 @@ export default function PaymentDashboard() {
     let active = true;
     setLoading(true);
 
-    getPayments({
-      page: statusActive ? 1 : page,
-      limit: statusActive ? FETCH_LIMIT : LIMIT,
-      search: debouncedSearch,
-    })
-      .then((res) => {
-        if (!active) return;
-
+    // Tanpa filter status  -> pagination normal dari server
+    // Dengan filter status -> ambil semua lalu filter di client
+    const fetchData = statusActive
+      ? getAllPayments({ search: debouncedSearch }).then((list) => ({
+        list,
+        total: list.length,
+      }))
+      : getPayments({
+        page,
+        limit: LIMIT,
+        search: debouncedSearch,
+      }).then((res) => {
         const raw = res?.data ?? [];
         const list: any[] = Array.isArray(raw) ? raw : [];
+        return {
+          list,
+          total: Number(res?.pagination?.total ?? list.length),
+        };
+      });
+
+    fetchData
+      .then(({ list, total }) => {
+        if (!active) return;
 
         const filtered = statusActive
           ? list.filter(
@@ -73,11 +85,7 @@ export default function PaymentDashboard() {
           : list;
 
         setAll(filtered);
-        setTotal(
-          statusActive
-            ? filtered.length
-            : Number(res?.pagination?.total ?? filtered.length)
-        );
+        setTotal(statusActive ? filtered.length : total);
       })
       .catch((err) => {
         if (!active) return;
@@ -131,7 +139,7 @@ export default function PaymentDashboard() {
           </button>
 
           <button
-            onClick={() => navigate("/payment/verify")}
+            onClick={() => navigate("/admin/payment/verify")}
             className="flex items-center gap-2 rounded-lg border border-green-300 bg-green-50 px-3 py-2 text-sm font-medium text-green-700 transition hover:bg-green-100"
           >
             <ShieldCheck size={16} /> Verifikasi
@@ -185,7 +193,7 @@ export default function PaymentDashboard() {
       <PaymentTable
         loading={loading}
         data={items}
-        onVerify={() => navigate("/payment/verify")}
+        onVerify={() => navigate("/admin/payment/verify")}
       />
 
       {/* Pagination */}

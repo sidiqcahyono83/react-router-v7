@@ -12,13 +12,14 @@ import {
   FileUp,
   Info,
   Loader2,
+  RefreshCw,
   Search,
   ShieldCheck,
   Wallet,
   X,
 } from "lucide-react";
 import PaymentStatusBadge from "./PaymentStatusBadge";
-import { createPaymentManual, getInvoice } from "~/api/payment";
+import { createPaymentCash, createPaymentManual, getAllInvoices } from "~/api/payment";
 
 const rupiah = (n: number) =>
   n.toLocaleString("id-ID", {
@@ -51,12 +52,15 @@ const METHODS = [
   },
 ];
 
+
+
 interface InvoiceOption {
   id: string;
   invoiceNumber: string;
   total?: number | null;
   bulan?: number | null;
   tahun?: number | null;
+  status?: string | null; // UNPAID / PAID / EXPIRED / dll (dipakai untuk filter)
   customer?: { fullname?: string; username?: string } | null;
 }
 
@@ -87,31 +91,40 @@ export default function CreatePayment() {
 
   const isCash = method === "CASH";
 
-  // Ambil daftar invoice yang belum dibayar (sekali, lalu filter client-side)
-  useEffect(() => {
-    let active = true;
+  // Muat ulang daftar invoice UNPAID (loop semua halaman, tidak dibatasi).
+  const loadInvoices = () => {
     setLoadingInvoices(true);
 
-    getInvoice({ page: 1, limit: 200, status: "UNPAID" })
-      .then((res) => {
-        if (!active) return;
+    getAllInvoices({ status: "UNPAID" })
+      .then((list) => {
+        // Filter client-side juga — jaga-jaga kalau backend tidak
+        // menerapkan query ?status= (mis. masih ada invoice PAID masuk).
+        const unpaid = (list as InvoiceOption[]).filter(
+          (inv) => String(inv.status ?? "").toUpperCase() === "UNPAID"
+        );
 
-        const raw = res?.data ?? [];
-        const list = (Array.isArray(raw) ? raw : []) as InvoiceOption[];
-        setInvoices(list);
+        setInvoices(unpaid);
+
+        // Kalau invoice terpilih ternyata tidak ada lagi di daftar
+        // (sudah lunas / tidak valid), kosongkan pilihan.
+        if (
+          selectedInvoice &&
+          !unpaid.some((i) => i.id === selectedInvoice.id)
+        ) {
+          setInvoiceId("");
+          setSelectedInvoice(null);
+        }
       })
       .catch((err) => {
-        if (!active) return;
         console.error(err);
         setInvoices([]);
       })
-      .finally(() => {
-        if (active) setLoadingInvoices(false);
-      });
+      .finally(() => setLoadingInvoices(false));
+  };
 
-    return () => {
-      active = false;
-    };
+  useEffect(() => {
+    loadInvoices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Filter hasil pencarian: nomor invoice / nama customer / username
@@ -180,17 +193,38 @@ export default function CreatePayment() {
     setResult(null);
 
     try {
-      // Multipart/form-data: invoiceId + method + file (jika transfer)
-      const res = await createPaymentManual({ invoiceId, method, file });
+      let res;
+
+      if (isCash) {
+        // CASH → POST /payment (JSON, tanpa file)
+        res = await createPaymentCash({ invoiceId, method });
+      } else {
+        // TRANSFER MANUAL → POST /payment/manual/attachment (multipart + file bukti)
+        res = await createPaymentManual({ invoiceId, method, file });
+      }
 
       setResult({
         message: res?.message ?? "Pembayaran berhasil dibuat.",
         payment: res?.data ?? null,
       });
+
+      // Invoice yang baru dibayar tidak lagi UNPAID —
+      // keluarkan dari daftar supaya tidak bisa dipilih lagi.
+      setInvoices((prev) => prev.filter((i) => i.id !== invoiceId));
+      setInvoiceId("");
+      setSelectedInvoice(null);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Gagal membuat pembayaran."
-      );
+      const msg =
+        err instanceof Error ? err.message : "Gagal membuat pembayaran.";
+      setError(msg);
+
+      // Invoice ternyata sudah lunas / punya pembayaran berjalan →
+      // segarkan daftar biar invoice itu tidak muncul lagi.
+      if (/sudah dibayar|diproses|tidak ditemukan/i.test(msg)) {
+        setInvoiceId("");
+        setSelectedInvoice(null);
+        loadInvoices();
+      }
     } finally {
       setLoading(false);
     }
@@ -210,7 +244,7 @@ export default function CreatePayment() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link
-          to="/payment"
+          to="/admin/payment"
           className="rounded-lg border p-2 text-slate-500 transition hover:bg-slate-50"
           title="Kembali ke Pembayaran"
         >
@@ -232,9 +266,25 @@ export default function CreatePayment() {
       >
         {/* Pencarian & pemilihan invoice */}
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">
-            Cari Invoice / Customer
-          </label>
+          <div className="mb-1.5 flex items-center justify-between">
+            <label className="block text-sm font-medium text-slate-700">
+              Cari Invoice / Customer
+            </label>
+
+            <button
+              type="button"
+              onClick={loadInvoices}
+              disabled={loadingInvoices}
+              className="flex items-center gap-1 text-xs font-medium text-slate-500 transition hover:text-green-700 disabled:opacity-50"
+              title="Muat ulang daftar invoice"
+            >
+              <RefreshCw
+                size={13}
+                className={loadingInvoices ? "animate-spin" : ""}
+              />
+              Muat ulang
+            </button>
+          </div>
 
           {/* Kolom pencarian */}
           <div className="relative">
@@ -303,43 +353,54 @@ export default function CreatePayment() {
               </Link>
             </div>
           ) : (
-            <ul className="mt-3 max-h-64 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200">
-              {filteredInvoices.map((inv) => {
-                const selected = inv.id === invoiceId;
+            <>
+              <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
+                <span>
+                  {search.trim()
+                    ? `${filteredInvoices.length} hasil dari ${invoices.length} invoice UNPAID`
+                    : `${invoices.length} invoice UNPAID`}
+                </span>
+                <span>Klik untuk memilih</span>
+              </div>
 
-                return (
-                  <li key={inv.id}>
-                    <button
-                      type="button"
-                      onClick={() => selectInvoice(inv)}
-                      className={`flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm transition ${selected ? "bg-green-50" : "hover:bg-slate-50"
-                        }`}
-                    >
-                      <span className="min-w-0">
-                        <span className="block truncate font-semibold text-slate-700">
-                          {inv.invoiceNumber}
-                        </span>
-                        <span className="block truncate text-xs text-slate-500">
-                          {inv.customer?.fullname ?? "-"} · Periode{" "}
-                          {inv.bulan}/{inv.tahun}
-                        </span>
-                      </span>
+              <ul className="mt-1.5 max-h-64 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200">
+                {filteredInvoices.map((inv) => {
+                  const selected = inv.id === invoiceId;
 
-                      <span className="flex shrink-0 items-center gap-2">
-                        <span className="font-semibold text-slate-700">
-                          {rupiah(Number(inv.total) || 0)}
+                  return (
+                    <li key={inv.id}>
+                      <button
+                        type="button"
+                        onClick={() => selectInvoice(inv)}
+                        className={`flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm transition ${selected ? "bg-green-50" : "hover:bg-slate-50"
+                          }`}
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate font-semibold text-slate-700">
+                            {inv.invoiceNumber}
+                          </span>
+                          <span className="block truncate text-xs text-slate-500">
+                            {inv.customer?.fullname ?? "-"} · Periode{" "}
+                            {inv.bulan}/{inv.tahun}
+                          </span>
                         </span>
-                        {selected ? (
-                          <CheckCircle2 size={18} className="text-green-600" />
-                        ) : (
-                          <span className="h-4 w-4 rounded-full border-2 border-slate-300" />
-                        )}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+
+                        <span className="flex shrink-0 items-center gap-2">
+                          <span className="font-semibold text-slate-700">
+                            {rupiah(Number(inv.total) || 0)}
+                          </span>
+                          {selected ? (
+                            <CheckCircle2 size={18} className="text-green-600" />
+                          ) : (
+                            <span className="h-4 w-4 rounded-full border-2 border-slate-300" />
+                          )}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
           )}
         </div>
 
@@ -441,8 +502,8 @@ export default function CreatePayment() {
           <Info size={16} className="mt-0.5 shrink-0" />
           <p>
             {isCash
-              ? "Pembayaran CASH langsung tercatat LUNAS, masuk Pendapatan & Buku Kas, dan status customer diaktifkan."
-              : "Pembayaran transfer akan masuk status \"Menunggu Verifikasi\". Admin harus memverifikasi bukti transfer di halaman Verifikasi sebelum invoice dianggap lunas."}
+              ? "CASH dikirim ke POST /payment (JSON, tanpa file) — langsung tercatat LUNAS, masuk Pendapatan & Buku Kas, dan status customer diaktifkan."
+              : "Transfer manual: bukti transfer diupload, pembayaran masuk status \"Menunggu Verifikasi\". Admin harus memverifikasi di halaman Verifikasi sebelum invoice dianggap lunas."}
           </p>
         </div>
 
@@ -494,7 +555,7 @@ export default function CreatePayment() {
 
             {result.payment?.status === "WAITING_VERIFICATION" && (
               <button
-                onClick={() => navigate("/payment/verify")}
+                onClick={() => navigate("/admin/payment/verify")}
                 className="flex items-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-green-700"
               >
                 <ShieldCheck size={16} /> Verifikasi Sekarang
@@ -502,7 +563,7 @@ export default function CreatePayment() {
             )}
 
             <button
-              onClick={() => navigate("/payment")}
+              onClick={() => navigate("/admin/payment")}
               className="flex items-center gap-2 rounded-lg border border-green-300 bg-white px-3 py-2 text-sm font-medium text-green-700 transition hover:bg-green-100"
             >
               <Wallet size={16} /> Lihat Daftar Pembayaran

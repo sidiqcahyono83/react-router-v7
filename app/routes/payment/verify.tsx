@@ -10,11 +10,8 @@ import {
   ShieldCheck,
   XCircle,
 } from "lucide-react";
-
-import { getPayments, verifyPayment } from "~/api/payment";
 import PaymentStatusBadge from "./PaymentStatusBadge";
-
-const FETCH_LIMIT = 200;
+import { getAllPayments, verifyPayment } from "~/api/payment";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -70,7 +67,7 @@ function VerifyCard({ payment, onDone }: VerifyCardProps) {
             {payment.customer?.fullname ?? "-"}
           </p>
         </div>
-        <PaymentStatusBadge status={payment.status ?? "-"} />
+        <PaymentStatusBadge status={payment.status} />
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
@@ -152,16 +149,13 @@ export default function VerifyPayment() {
     let active = true;
     setLoading(true);
 
-    getPayments({ page: 1, limit: FETCH_LIMIT, search: debouncedSearch })
-      .then((res) => {
+    getAllPayments({ search: debouncedSearch })
+      .then((list) => {
         if (!active) return;
-
-        const raw = res?.data ?? [];
-        const list: any[] = Array.isArray(raw) ? raw : [];
-
         setPayments(
           list.filter(
-            (p: any) => String(p.status ?? "").toUpperCase() === "WAITING_VERIFICATION"
+            (p: any) =>
+              String(p.status ?? "").toUpperCase() === "WAITING_VERIFICATION"
           )
         );
       })
@@ -185,7 +179,7 @@ export default function VerifyPayment() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link
-            to="/payment"
+            to="/admin/payment"
             className="rounded-lg border p-2 text-slate-500 transition hover:bg-slate-50"
             title="Kembali ke Pembayaran"
           >
