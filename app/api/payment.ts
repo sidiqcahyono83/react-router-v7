@@ -263,6 +263,8 @@ export async function createPaymentManual(data: {
   const result = await res.json();
 
   if (!res.ok) {
+    // Log detail error supaya penyebab 400 (dari validasi backend) kelihatan di console
+    console.error("[payment/manual/attachment] error", res.status, result);
     throw new Error(result.message ?? "Gagal membuat pembayaran.");
   }
 

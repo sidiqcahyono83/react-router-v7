@@ -35,11 +35,20 @@ const ALLOWED_TYPES = [
   "application/pdf",
 ];
 
+// Metode pembayaran MANUAL:
+// - CASH          → langsung lunas, TANPA upload bukti
+// - BANK_TRANSFER → transfer manual, WAJIB upload bukti (menunggu verifikasi)
 const METHODS = [
-  { value: "CASH", label: "Tunai (Cash)" },
-  { value: "BANK_TRANSFER", label: "Transfer Bank" },
-  { value: "QRIS", label: "QRIS" },
-  { value: "VA_BCA", label: "Virtual Account BCA" },
+  {
+    value: "CASH",
+    label: "Tunai (Cash)",
+    desc: "Langsung lunas — tidak perlu upload bukti",
+  },
+  {
+    value: "BANK_TRANSFER",
+    label: "Transfer Bank Manual",
+    desc: "Wajib upload bukti transfer — menunggu verifikasi admin",
+  },
 ];
 
 interface InvoiceOption {
@@ -201,7 +210,7 @@ export default function CreatePayment() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link
-          to="/admin/payment"
+          to="/payment"
           className="rounded-lg border p-2 text-slate-500 transition hover:bg-slate-50"
           title="Kembali ke Pembayaran"
         >
@@ -339,24 +348,56 @@ export default function CreatePayment() {
           <label className="mb-1.5 block text-sm font-medium text-slate-700">
             Metode Pembayaran
           </label>
-          <select
-            value={method}
-            onChange={(e) => {
-              setMethod(e.target.value);
-              setFile(null);
-              setFileError("");
-            }}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-200"
-          >
-            {METHODS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {METHODS.map((m) => {
+              const active = method === m.value;
+
+              return (
+                <button
+                  key={m.value}
+                  type="button"
+                  onClick={() => {
+                    setMethod(m.value);
+                    // Pindah metode -> hapus file yang sudah dipilih (CASH tidak butuh bukti)
+                    setFile(null);
+                    setFileError("");
+                  }}
+                  className={`rounded-xl border p-4 text-left transition ${active
+                    ? "border-green-600 bg-green-50 ring-2 ring-green-200"
+                    : "border-slate-300 bg-white hover:border-green-300 hover:bg-green-50/50"
+                    }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span
+                      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${active ? "border-green-600" : "border-slate-300"
+                        }`}
+                    >
+                      {active && (
+                        <span className="h-2 w-2 rounded-full bg-green-600" />
+                      )}
+                    </span>
+                    <span className="font-semibold text-slate-800">
+                      {m.label}
+                    </span>
+                  </span>
+                  <span className="mt-1.5 block pl-6 text-xs text-slate-500">
+                    {m.desc}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Info: CASH tidak perlu bukti transfer */}
+          {isCash && (
+            <div className="mt-2 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+              <CheckCircle2 size={15} className="shrink-0" />
+              Pembayaran tunai tidak memerlukan unggahan bukti.
+            </div>
+          )}
         </div>
 
-        {/* Upload bukti transfer (wajib jika bukan CASH) */}
+        {/* Upload bukti transfer (HANYA jika bukan CASH) */}
         {!isCash && (
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
