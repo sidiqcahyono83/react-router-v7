@@ -92,12 +92,17 @@ export async function getAllPendapatan(
       search: params.search ?? "",
     });
 
-    const raw = res?.data ?? [];
+    // Tahan 2 bentuk response: array mentah atau { data: [...], pagination }
+    const raw = Array.isArray(res) ? res : (res?.data ?? []);
     const batch = Array.isArray(raw) ? raw : [];
     all.push(...batch);
 
-    const total = Number(res?.pagination?.total ?? 0);
-    const totalPages = Number(res?.pagination?.totalPages ?? 1);
+    const total = Array.isArray(res)
+      ? raw.length
+      : Number(res?.pagination?.total ?? 0);
+    const totalPages = Array.isArray(res)
+      ? 1
+      : Number(res?.pagination?.totalPages ?? 1);
 
     if (batch.length === 0 || page >= totalPages || all.length >= total) {
       break;
