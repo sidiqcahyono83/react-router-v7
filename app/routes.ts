@@ -75,7 +75,8 @@ export default [
         route("odp/:id", "routes/odp/detail.tsx"),
         route("odp/:id/edit", "routes/odp/edit.tsx"),
         //OLT
-        route("olt", "routes/olt/olt.tsx"),
+        route("olt", "routes/olt/dashboard.tsx"),
+        route("olttable", "routes/olt/olt.tsx"),
         route("olt/create", "routes/olt/create.tsx"),
         route("olt/:id", "routes/olt/detail.tsx"),
         route("olt/:id/edit", "routes/olt/edit.tsx"),
