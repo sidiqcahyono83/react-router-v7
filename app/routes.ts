@@ -15,6 +15,7 @@ export default [
     layout("routes/auth/auth-layout.tsx", [
       layout("routes/layouts.tsx", [
         index("routes/dashboard/dashboard.tsx"),
+        route("sync", "routes/syncPppoe/dashboard.tsx"),
 
         //Customers
         route("customers", "routes/customers/customers.tsx"),
