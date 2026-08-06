@@ -110,12 +110,12 @@ export const navigation: MenuGroup[] = [
           },
           {
             title: "Pengeluaran",
-            href: "/admin/laporan/pengeluaran",
+            href: "/admin/pengeluaran",
             icon: FileText,
           },
           {
             title: "Buku Kas",
-            href: "/admin/laporan/buku-kas",
+            href: "/admin/bukukas",
             icon: BarChart3,
           },
         ],
@@ -125,6 +125,11 @@ export const navigation: MenuGroup[] = [
   {
     title: "System",
     items: [
+      {
+        title: "User",
+        href: "/admin/user",
+        icon: Users,
+      },
       {
         title: "Setting",
         href: "/admin/settings",
