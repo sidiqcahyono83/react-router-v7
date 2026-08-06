@@ -18,13 +18,14 @@ export default [
         route("sync", "routes/syncPppoe/dashboard.tsx"),
 
         //Customers
-        route("customers", "routes/customers/customers.tsx"),
+        route("customers", "routes/customers/dashboard.tsx"),
         route(
-          "customers/create",
+          "customers/createpppoe",
           "routes/customers/CustomerCreateWithPpoePage.tsx",
         ),
         route("customers/:id", "routes/customers/detail.tsx"),
         route("customers/:id/edit", "routes/customers/edit.tsx"),
+        route("customer/create/:id?", "routes/customers/create.tsx"),
 
         //Pembayaran
         route("pembayaran", "routes/pembayaran/pembayaran.tsx"),
