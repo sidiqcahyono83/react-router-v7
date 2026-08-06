@@ -169,6 +169,10 @@ export async function getOltDaftar(): Promise<OltInfo[]> {
 /** GET /olt/:olt/ — semua ONU */
 export async function getOltAll(olt: string, refresh = false) {
   const q = refresh ? "?refresh=1" : "";
+
+  // ⭐ JANGAN tambah "/" setelah nama OLT:
+  //   /olt/sruweng      → 200 OK
+  //   /olt/sruweng/     → 404 (Hono tidak match route root dengan trailing slash)
   const res = await fetch(`${API}/olt/${encodeURIComponent(olt)}${q}`, {
     credentials: "include",
   });
@@ -218,4 +222,31 @@ export function ageLabel(fetchedAt?: number | string | null) {
   const min = Math.floor(diffSec / 60);
   if (min < 60) return `${min} menit lalu`;
   return `${Math.floor(min / 60)} jam lalu`;
+}
+
+/** POST /olt/:olt/onu/:id/name — ganti nama & deskripsi ONT */
+export async function updateOntName(
+  olt: string,
+  identifier: number | string,
+  data: { ont_name: string; ont_description?: string },
+) {
+  const res = await fetch(
+    `${API}/olt/${encodeURIComponent(olt)}/onu/${identifier}/name`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    },
+  );
+
+  const result = await safeJson(res);
+
+  if (!res.ok) {
+    throw new Error(result?.message ?? `Gagal mengedit ONT (${res.status})`);
+  }
+
+  return result; // { success, message, data }
 }

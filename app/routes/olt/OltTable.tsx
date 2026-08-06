@@ -1,26 +1,133 @@
-import { Router, SearchX } from "lucide-react";
+import { Pencil, Router, SearchX } from "lucide-react";
 
-// Prioritas kolom tambahan (di luar ont_name & ont_sn) —
-// kalau field-field ini ada di data, tampilkan lebih dulu
+// ============================================================
+// OltTable — tabel ONU dengan format data OLT ZTE
+// Kolom khusus:
+//   Status       → rstate: 1 = Aktif (hijau), 2 = Offline (merah)
+//   Receive Power→ receive_power (dBm)
+//   Uptime       → dihitung dari last_u_time (dalam jam)
+//   Last Down    → last_d_time (tanggal + jam)
+//   Down Cause   → last_d_cause
+// ============================================================
+
+// Parse tanggal format ZTE: "2026/07/29 19:20:16"
+function parseZteDate(s?: unknown): Date | null {
+  if (typeof s !== "string" || !s) return null;
+  const m = s.match(
+    /^(\d{4})\/(\d{2})\/(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/
+  );
+  if (!m) return null;
+  const d = new Date(
+    Number(m[1]),
+    Number(m[2]) - 1,
+    Number(m[3]),
+    Number(m[4]),
+    Number(m[5]),
+    Number(m[6])
+  );
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+// Tanggal + jam format Indonesia: "29 Jul 2026, 19:20"
+function fmtDateTime(v?: unknown): string {
+  const d = parseZteDate(v);
+  if (!d) return "-";
+  return d.toLocaleString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+// Uptime dari last_u_time → "X j Y mnt" / "X hr Y j"
+function fmtUptime(v?: unknown): string {
+  const d = parseZteDate(v);
+  if (!d) return "-";
+  const diffMs = Date.now() - d.getTime();
+  if (diffMs < 0) return "-";
+  const totalMin = Math.floor(diffMs / 60000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+
+  if (h >= 24) {
+    const days = Math.floor(h / 24);
+    const remH = h % 24;
+    return `${days} hr ${remH} j`;
+  }
+  return `${h} j ${m} mnt`;
+}
+
+// Receive power → "-14.49 dBm"
+function fmtPower(v?: unknown): string {
+  if (v === null || v === undefined || v === "") return "-";
+  const n = Number(v);
+  if (Number.isNaN(n)) return String(v);
+  return `${n.toFixed(2)} dBm`;
+}
+
+// Status badge: rstate 1 = Aktif, 2 = Offline
+function statusInfo(v?: unknown) {
+  const s = String(v ?? "").trim();
+
+  if (s === "1") {
+    return {
+      label: "Aktif",
+      cls: "border-green-200 bg-green-100 text-green-700",
+    };
+  }
+  if (s === "2" || s === "0") {
+    return {
+      label: "Offline",
+      cls: "border-red-200 bg-red-100 text-red-700",
+    };
+  }
+  return {
+    label: s || "-",
+    cls: "border-slate-200 bg-slate-100 text-slate-600",
+  };
+}
+
+function StatusBadge({ value }: { value?: unknown }) {
+  const info = statusInfo(value);
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${info.cls}`}
+    >
+      {info.label}
+    </span>
+  );
+}
+
+// Kolom tambahan (di luar yang sudah dikelola khusus)
 const PREFERRED_EXTRA = [
+  "dev_type",
+  "identifier",
+  "ont_description",
+  "parent",
+  "state",
+  "cstate",
+  "mstate",
   "ont_status",
-  "status",
-  "ont_rxpower",
-  "ont_txpower",
   "ont_signal",
   "ont_distance",
-  "ont_online",
-  "state",
-  "online_status",
 ];
 
 interface Props {
   loading: boolean;
   data: any[];
   startIndex?: number;
+  /** Kalau diisi, tiap baris menampilkan tombol edit nama ONT */
+  onEdit?: (ont: any) => void;
 }
 
-export default function OltTable({ loading, data, startIndex = 0 }: Props) {
+export default function OltTable({
+  loading,
+  data,
+  startIndex = 0,
+  onEdit,
+}: Props) {
   if (loading) {
     return (
       <div className="rounded-2xl bg-white p-6 shadow-sm">
@@ -45,30 +152,38 @@ export default function OltTable({ loading, data, startIndex = 0 }: Props) {
     );
   }
 
-  // Kolom tambahan dinamis: ambil dari baris pertama,
-  // prioritaskan field yang menarik, maksimal 3.
   const first = data[0] ?? {};
-  const keys = Object.keys(first).filter(
-    (k) => k !== "ont_name" && k !== "ont_sn"
-  );
 
+  // Deteksi field yang tersedia
+  const hasRstate = "rstate" in first;
+  const hasState = !hasRstate && "state" in first;
+  const hasPower = "receive_power" in first || "ont_rxpower" in first;
+  const hasLastU = "last_u_time" in first;
+  const hasLastD = "last_d_time" in first;
+  const hasCause = "last_d_cause" in first;
+
+  const powerKey = "receive_power" in first ? "receive_power" : "ont_rxpower";
+  const statusKey = hasRstate ? "rstate" : hasState ? "state" : null;
+
+  // Kolom tambahan dinamis (sisa field yang belum dipakai khusus), maks 2
+  const used = new Set([
+    "ont_name",
+    "ont_sn",
+    powerKey,
+    statusKey ?? "",
+    "last_u_time",
+    "last_d_time",
+    "last_d_cause",
+  ]);
+  const keys = Object.keys(first).filter((k) => !used.has(k));
   const extraKeys = [
     ...PREFERRED_EXTRA.filter((k) => keys.includes(k)),
     ...keys.filter((k) => !PREFERRED_EXTRA.includes(k)),
-  ].slice(0, 3);
+  ].slice(0, 2);
 
   const fmt = (v: unknown) => {
     if (v === null || v === undefined || v === "") return "-";
     return String(v);
-  };
-
-  const statusClass = (v: unknown) => {
-    const s = String(v ?? "").toLowerCase();
-    if (["online", "on", "active", "1", "connected"].includes(s))
-      return "text-green-600";
-    if (["offline", "off", "inactive", "0", "disconnected"].includes(s))
-      return "text-red-600";
-    return "text-slate-600";
   };
 
   return (
@@ -89,25 +204,65 @@ export default function OltTable({ loading, data, startIndex = 0 }: Props) {
                   SN: {ont.ont_sn || "-"}
                 </p>
               </div>
-              <span className="shrink-0 text-xs font-semibold text-slate-400">
-                #{startIndex + index + 1}
-              </span>
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                <span className="text-xs font-semibold text-slate-400">
+                  #{startIndex + index + 1}
+                </span>
+                {statusKey && <StatusBadge value={ont[statusKey]} />}
+                {onEdit && (
+                  <button
+                    onClick={() => onEdit(ont)}
+                    className="rounded-lg border p-1 text-amber-600 transition hover:bg-amber-50"
+                    title="Edit nama ONT"
+                  >
+                    <Pencil size={13} />
+                  </button>
+                )}
+              </div>
             </div>
 
-            {extraKeys.length > 0 && (
-              <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 text-xs">
-                {extraKeys.map((k) => (
-                  <div key={k}>
-                    <p className="text-slate-400">{k}</p>
-                    <p
-                      className={`truncate font-medium ${statusClass(ont[k])}`}
-                    >
-                      {fmt(ont[k])}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 text-xs">
+              {hasPower && (
+                <div>
+                  <p className="text-slate-400">Receive Power</p>
+                  <p className="font-medium text-slate-700">
+                    {fmtPower(ont[powerKey])}
+                  </p>
+                </div>
+              )}
+              {hasLastU && (
+                <div>
+                  <p className="text-slate-400">Uptime</p>
+                  <p className="font-medium text-green-700">
+                    {fmtUptime(ont.last_u_time)}
+                  </p>
+                </div>
+              )}
+              {hasLastD && (
+                <div>
+                  <p className="text-slate-400">Last Down</p>
+                  <p className="font-medium text-slate-700">
+                    {fmtDateTime(ont.last_d_time)}
+                  </p>
+                </div>
+              )}
+              {hasCause && (
+                <div>
+                  <p className="text-slate-400">Down Cause</p>
+                  <p className="truncate font-medium text-slate-700">
+                    {fmt(ont.last_d_cause)}
+                  </p>
+                </div>
+              )}
+              {extraKeys.map((k) => (
+                <div key={k}>
+                  <p className="text-slate-400">{k}</p>
+                  <p className="truncate font-medium text-slate-700">
+                    {fmt(ont[k])}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
@@ -121,11 +276,20 @@ export default function OltTable({ loading, data, startIndex = 0 }: Props) {
                 <th className="px-5 py-4">#</th>
                 <th className="px-5 py-4">Nama ONT</th>
                 <th className="px-5 py-4">Serial Number</th>
+
+                {statusKey && <th className="px-5 py-4">Status</th>}
+                {hasPower && <th className="px-5 py-4">Receive Power</th>}
+                {hasLastU && <th className="px-5 py-4">Uptime</th>}
+                {hasLastD && <th className="px-5 py-4">Last Down</th>}
+                {hasCause && <th className="px-5 py-4">Down Cause</th>}
+
                 {extraKeys.map((k) => (
                   <th key={k} className="px-5 py-4">
                     {k}
                   </th>
                 ))}
+
+                {onEdit && <th className="px-5 py-4">Aksi</th>}
               </tr>
             </thead>
 
@@ -147,14 +311,55 @@ export default function OltTable({ loading, data, startIndex = 0 }: Props) {
                     {ont.ont_sn || "-"}
                   </td>
 
+                  {statusKey && (
+                    <td className="px-5 py-4">
+                      <StatusBadge value={ont[statusKey]} />
+                    </td>
+                  )}
+
+                  {hasPower && (
+                    <td className="px-5 py-4 text-sm text-slate-700">
+                      {fmtPower(ont[powerKey])}
+                    </td>
+                  )}
+
+                  {hasLastU && (
+                    <td className="px-5 py-4 text-sm font-medium text-green-700">
+                      {fmtUptime(ont.last_u_time)}
+                    </td>
+                  )}
+
+                  {hasLastD && (
+                    <td className="px-5 py-4 text-sm text-slate-600">
+                      {fmtDateTime(ont.last_d_time)}
+                    </td>
+                  )}
+
+                  {hasCause && (
+                    <td className="max-w-50 px-5 py-4">
+                      <p className="truncate text-sm text-slate-600">
+                        {fmt(ont.last_d_cause)}
+                      </p>
+                    </td>
+                  )}
+
                   {extraKeys.map((k) => (
-                    <td
-                      key={k}
-                      className={`px-5 py-4 text-sm ${statusClass(ont[k])}`}
-                    >
+                    <td key={k} className="px-5 py-4 text-sm text-slate-600">
                       {fmt(ont[k])}
                     </td>
                   ))}
+
+                  {onEdit && (
+                    <td className="px-5 py-4">
+                      <button
+                        onClick={() => onEdit(ont)}
+                        className="rounded-lg border p-2 text-amber-600 transition hover:bg-amber-50"
+                        title="Edit nama ONT"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
