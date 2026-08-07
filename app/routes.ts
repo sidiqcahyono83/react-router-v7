@@ -10,6 +10,7 @@ export default [
   index("routes/home.tsx"),
   route("bayar/:invoiceId", "routes/bayar.tsx"), // halaman bayar tagihan via Midtrans
   route("login", "routes/auth/login.tsx"),
+  route("tanah", "routes/tanah.tsx"),
 
   ...prefix("admin", [
     layout("routes/auth/auth-layout.tsx", [
