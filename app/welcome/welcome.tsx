@@ -58,6 +58,10 @@ export function Welcome() {
               {" "}
               Kontak{" "}
             </a>{" "}
+            <a href="/tanah" className="hover:text-blue-600">
+              {" "}
+              Tanah{" "}
+            </a>{" "}
           </div>{" "}
           {/* <a
             href="/login"
