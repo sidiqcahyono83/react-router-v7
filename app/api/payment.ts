@@ -544,3 +544,70 @@ export async function chargePaymentGateway(invoiceId: string) {
 export function paymentLink(invoiceId: string) {
   return `${window.location.origin}/bayar/${invoiceId}`;
 }
+
+export async function getPaymentId(id: string) {
+  try {
+    const res = await fetch(`${API}/payment/${id}`, {
+      credentials: "include",
+    });
+
+    if (res.ok) {
+      const result = await safeJson(res);
+      return result?.data ?? result ?? null;
+    }
+
+    if (res.status !== 404) {
+      const result = await safeJson(res);
+      throw new Error(result?.message ?? "Gagal mengambil payment.");
+    }
+  } catch (err) {
+    // Kalau error karena 404 → lanjut fallback; selain itu rethrow
+    if (err instanceof Error && !err.message.includes("404")) {
+      throw err;
+    }
+  }
+
+  // Fallback: cari dari semua payment
+  const list = await getAllPayments({ pageSize: 500 });
+  const found = list.find((p: any) => p.id === id);
+  if (!found) {
+    throw new Error("Payment tidak ditemukan.");
+  }
+  return found;
+}
+
+/**
+ * PATCH /payment/:id — update payment (status, jumlah, metode, tanggal).
+ * ⚠️ Butuh route PATCH /payment/:id di backend (kalau 404, pesan jelas).
+ */
+export async function updatePayment(
+  id: string,
+  data: {
+    status?: string;
+    amount?: number;
+    method?: string;
+    paidAt?: string | null;
+    transferAt?: string | null;
+  },
+) {
+  const res = await fetch(`${API}/payment/${id}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  const result = await safeJson(res);
+
+  if (!res.ok) {
+    console.error("[payment/:id] error", res.status, result);
+    throw new Error(
+      result?.message ??
+        `Gagal update payment (${res.status}). Pastikan backend punya route PATCH /payment/:id.`,
+    );
+  }
+
+  return result?.data ?? result;
+}

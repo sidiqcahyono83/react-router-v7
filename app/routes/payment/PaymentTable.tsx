@@ -1,4 +1,4 @@
-import { Banknote, Eye, ShieldCheck } from "lucide-react";
+import { Banknote, Eye, Pencil, ShieldCheck } from "lucide-react";
 import { Link } from "react-router";
 import { formatTanggal } from "~/types/toIdr";
 
@@ -135,6 +135,14 @@ export default function PaymentTable({ loading, data, onVerify }: Props) {
                         <Eye size={18} />
                       </Link>
                     )}
+
+                    <Link
+                      to={`/admin/payment/${payment.id}/edit`}
+                      className="rounded-lg border p-2 text-amber-600 transition hover:bg-amber-50"
+                      title="Edit Payment"
+                    >
+                      <Pencil size={18} />
+                    </Link>
 
                     {onVerify &&
                       String(payment.status ?? "").toUpperCase() ===
