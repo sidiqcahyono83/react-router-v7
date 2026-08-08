@@ -1,10 +1,5 @@
 // ============================================================
 // API BUKU KAS
-// Backend:
-//   GET /buku-kas?page&limit&bulan&tahun   → { success, total, page, limit, data }
-//   GET /buku-kas/:id                      → detail
-//   GET /buku-kas/summary/total            → { success, totalMasuk, totalKeluar, saldoAkhir }
-//   GET /buku-kas/ (per user, startDate/endDate) — alternatif
 // ============================================================
 
 const API = import.meta.env.VITE_API_URL;
@@ -23,6 +18,7 @@ export interface BukuKasItem {
   pendapatan?: Array<{
     id: string;
     total?: number;
+    totalMasuk?: number;
     deskripsi?: string | null;
     createdAt?: string;
     payment?: {
@@ -33,6 +29,7 @@ export interface BukuKasItem {
   }> | null;
   pengeluaran?: Array<{
     id: string;
+    total?: number;
     totalKeluar?: number;
     kategori?: string;
     deskripsi?: string | null;
@@ -41,28 +38,26 @@ export interface BukuKasItem {
   }> | null;
 }
 
-/** Parsing JSON yang aman */
+export interface BukuKasSummary {
+  totalMasuk: number;
+  totalKeluar: number;
+  saldoAkhir: number;
+}
+
 async function safeJson(res: Response): Promise<any> {
   try {
     return await res.json();
   } catch {
-    const text = await res.text().catch(() => "");
     return {
-      message: `Server error (${res.status}): ${
-        text.trim().slice(0, 150) || "(body kosong)"
-      }`,
+      message: `Server error (${res.status})`,
     };
   }
 }
 
-/**
- * Coba beberapa kandidat path sampai dapat yang bukan 404.
- * Backend bisa di-mount sebagai /buku-kas atau /bukukas.
- */
 async function fetchFirstOk(
   paths: string[],
   init?: RequestInit,
-): Promise<{ res: Response; result: any; path: string }> {
+): Promise<{ result: any; path: string }> {
   let lastErr: Error | null = null;
 
   for (const path of paths) {
@@ -74,78 +69,139 @@ async function fetchFirstOk(
 
       const result = await safeJson(res);
 
-      if (!res.ok && res.status === 404) {
-        console.warn(`[bukukas] 404 di ${path}`);
-        lastErr = new Error(`Endpoint ${path} tidak ditemukan (404).`);
+      if (res.status === 404) {
+        lastErr = new Error(`Endpoint ${path} tidak ditemukan.`);
         continue;
       }
 
-      return { res, result, path };
+      if (!res.ok) {
+        throw new Error(
+          result?.message || `Gagal mengambil Buku Kas (HTTP ${res.status}).`,
+        );
+      }
+
+      return { result, path };
     } catch (err) {
       lastErr =
         err instanceof Error ? err : new Error("Gagal menghubungi server.");
     }
   }
 
-  throw (
-    lastErr ??
-    new Error(
-      "Gagal mengambil data Buku Kas. Pastikan route /buku-kas terdaftar di backend.",
-    )
-  );
+  throw lastErr ?? new Error("Gagal mengambil data Buku Kas.");
 }
 
-/** GET /buku-kas — list dengan pagination + filter bulan/tahun */
+function numberValue(value: unknown): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function queryFor(params: {
+  bulan?: number | string;
+  tahun?: number | string;
+}) {
+  const query = new URLSearchParams();
+
+  const year = Number(params.tahun);
+  const month = Number(params.bulan);
+
+  if (Number.isInteger(year) && year >= 2020 && year <= 2100) {
+    if (Number.isInteger(month) && month >= 1 && month <= 12) {
+      const monthText = String(month).padStart(2, "0");
+      const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+
+      query.set("startDate", `${year}-${monthText}-01`);
+      query.set(
+        "endDate",
+        `${year}-${monthText}-${String(lastDay).padStart(2, "0")}`,
+      );
+    } else {
+      query.set("startDate", `${year}-01-01`);
+      query.set("endDate", `${year}-12-31`);
+    }
+  }
+
+  const queryText = query.toString();
+  return queryText ? `?${queryText}` : "";
+}
+
 export async function getBukuKas(params: {
   page: number;
   limit: number;
   bulan?: number | string;
   tahun?: number | string;
 }) {
-  const query = new URLSearchParams({
-    page: String(params.page),
-    limit: String(params.limit),
+  const query = queryFor({
+    bulan: params.bulan,
+    tahun: params.tahun,
   });
 
-  if (params.bulan) query.set("bulan", String(params.bulan));
-  if (params.tahun) query.set("tahun", String(params.tahun));
+  const { result } = await fetchFirstOk([
+    `/bukukas${query}`,
+    `/buku-kas${query}`,
+  ]);
 
-  const { result } = await fetchFirstOk([`/bukukas?${query}`], {
-    credentials: "include",
-  });
+  const payload = result?.data;
 
-  // Bentuk response: { success, total, page, limit, data }
-  // (total di root, bukan pagination.total)
-  const raw = result?.data ?? [];
-  const list = Array.isArray(raw) ? raw : [];
+  const raw = Array.isArray(payload)
+    ? payload
+    : (payload?.data ?? result?.items ?? []);
+
+  const list: BukuKasItem[] = Array.isArray(raw) ? raw : [];
+
+  // Backend saat ini mengirim seluruh data tanpa pagination.
+  // Pagination dilakukan di frontend.
+  const start = (params.page - 1) * params.limit;
+  const end = params.page * params.limit;
 
   return {
     ...result,
-    data: list,
-    total: Number(result?.total ?? result?.pagination?.total ?? list.length),
-    page: Number(result?.page ?? result?.pagination?.page ?? params.page),
-    limit: Number(result?.limit ?? result?.pagination?.limit ?? params.limit),
+    data: list.slice(start, end),
+    total: list.length,
+    page: params.page,
+    limit: params.limit,
   };
 }
 
-/** GET /buku-kas/summary/total — total masuk, keluar, saldo akhir */
-export async function getBukuKasSummary() {
-  const { result } = await fetchFirstOk(["/bukukas/summary/total"], {
-    credentials: "include",
-  });
+export async function getBukuKasSummary(
+  params: {
+    bulan?: number | string;
+    tahun?: number | string;
+  } = {},
+): Promise<BukuKasSummary> {
+  const query = queryFor(params);
+
+  // Menggunakan endpoint daftar karena endpoint /summary/total backend
+  // belum memakai checkUserToken dan filter userId.
+  const { result } = await fetchFirstOk([
+    `/bukukas${query}`,
+    `/buku-kas${query}`,
+  ]);
+
+  const payload = result?.data;
+
+  const raw = Array.isArray(payload)
+    ? payload
+    : (payload?.data ?? result?.items ?? []);
+
+  const records: BukuKasItem[] = Array.isArray(raw) ? raw : [];
 
   return {
-    totalMasuk: Number(result?.totalMasuk ?? 0),
-    totalKeluar: Number(result?.totalKeluar ?? 0),
-    saldoAkhir: Number(result?.saldoAkhir ?? 0),
+    totalMasuk: records.reduce(
+      (sum, item) => sum + numberValue(item.totalMasuk),
+      0,
+    ),
+    totalKeluar: records.reduce(
+      (sum, item) => sum + numberValue(item.totalKeluar),
+      0,
+    ),
+    // Backend mengurutkan tanggal desc, sehingga data pertama
+    // merupakan saldo akhir periode.
+    saldoAkhir: numberValue(records[0]?.saldoAkhir),
   };
 }
 
-/** GET /buku-kas/:id — detail satu hari */
 export async function getBukuKasId(id: string) {
-  const { result } = await fetchFirstOk([`/bukukas/${id}`, `/bukukas/${id}`], {
-    credentials: "include",
-  });
+  const { result } = await fetchFirstOk([`/bukukas/${id}`, `/buku-kas/${id}`]);
 
   return result?.data ?? result ?? null;
 }

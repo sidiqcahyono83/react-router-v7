@@ -35,7 +35,7 @@
 }
 
 .pengukuran-tanah-app .pt-wrap {
-  max-width: 920px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 0 20px;
 }
@@ -54,17 +54,17 @@
 .pengukuran-tanah-app header.pt-top h1 {
   font-family: var(--pt-serif);
   color: #fbf8f1;
-  font-size: 32px;
+  font-size: 38px;
   font-weight: 600;
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   letter-spacing: 0.01em;
 }
 .pengukuran-tanah-app header.pt-top p {
   color: #c7d3de;
   margin: 0;
-  font-size: 14px;
-  max-width: 560px;
-  line-height: 1.5;
+  font-size: 15.5px;
+  max-width: 640px;
+  line-height: 1.6;
 }
 
 .pengukuran-tanah-app .pt-section {
@@ -93,7 +93,7 @@
 }
 .pengukuran-tanah-app .pt-section-head h2 {
   font-family: var(--pt-serif);
-  font-size: 19px;
+  font-size: 22px;
   font-weight: 600;
   margin: 0;
   color: var(--pt-navy-dark);
@@ -115,22 +115,22 @@
 
 .pengukuran-tanah-app label {
   display: block;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--pt-ink-soft);
-  margin-bottom: 5px;
+  margin-bottom: 6px;
   letter-spacing: 0.02em;
 }
 .pengukuran-tanah-app input[type="text"],
 .pengukuran-tanah-app input[type="number"],
 .pengukuran-tanah-app select {
   width: 100%;
-  padding: 9px 11px;
+  padding: 11px 13px;
   border: 1px solid var(--pt-line);
   border-radius: 3px;
   background: #fff;
   font-family: var(--pt-sans);
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--pt-ink);
 }
 .pengukuran-tanah-app input:disabled {
@@ -255,7 +255,7 @@
   background: #fcfbf6;
   border: 1px solid var(--pt-line);
   border-radius: 3px;
-  padding: 10px;
+  padding: 16px;
 }
 .pengukuran-tanah-app .pt-sketch-wrap canvas {
   width: 100%;
@@ -268,17 +268,17 @@
   background: var(--pt-navy-dark);
   color: #edefe9;
   border-radius: 3px;
-  padding: 18px 20px;
+  padding: 20px 22px;
   font-family: var(--pt-mono);
-  font-size: 13.5px;
-  line-height: 1.9;
+  font-size: 15px;
+  line-height: 2;
 }
 .pengukuran-tanah-app .pt-calc-box .pt-step {
   color: #b9c6d3;
 }
 .pengukuran-tanah-app .pt-calc-box .pt-result {
   color: #f0d9a6;
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 600;
   margin-top: 8px;
   border-top: 1px dashed #3a5474;
@@ -300,7 +300,7 @@
 }
 .pengukuran-tanah-app .pt-card .pt-num {
   font-family: var(--pt-serif);
-  font-size: 26px;
+  font-size: 32px;
   color: var(--pt-navy-dark);
   font-weight: 700;
 }

@@ -38,7 +38,7 @@ export async function getDashboardSummary() {
 export async function getDashboard(params: {
   page: number;
   limit: number;
-  type: "secret" | "active" | "inactive" | "disabled" | "nonactive";
+  type: "secret" | "active" | "inactive" | "disabled" | "nonActiveNonDisabled";
 }) {
   const query = new URLSearchParams({
     page: String(params.page),

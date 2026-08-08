@@ -8,7 +8,7 @@ import {
 
 export default [
   index("routes/home.tsx"),
-  route("bayar/:invoiceId", "routes/bayar.tsx"), // halaman bayar tagihan via Midtrans
+  route("bayar/:invoiceId", "routes/bayar.tsx"),
   route("login", "routes/auth/login.tsx"),
   route("tanah", "routes/tanah.tsx"),
 
