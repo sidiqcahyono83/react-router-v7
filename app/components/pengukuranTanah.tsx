@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import type { ChangeEvent } from 'react';
-import jsPDF from 'jspdf';
+
 import '../../app/pengukuranTanah.css';
+import jsPDF from 'jspdf';
 
 /* ============================================================
    TYPES
@@ -467,9 +468,11 @@ export default function PengukuranTanah() {
   };
 
   /* ---------- PDF export ---------- */
-  const generatePDF = () => {
+
+  const generatePDF = async () => {
+    const { default: jsPDF } = await import("jspdf");
     try {
-      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+      const doc = new jsPDF({ unit: "mm", format: "a4" });
       const pageW = 210;
       const marginL = 16;
       const contentW = pageW - marginL * 2;
