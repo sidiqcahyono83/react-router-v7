@@ -111,7 +111,7 @@ export default function CreateCustomer() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link
-          to="/admin/customer"
+          to="/admin/customers"
           className="rounded-lg border p-2 text-slate-500 transition hover:bg-slate-50"
           title="Kembali ke Customer"
         >
