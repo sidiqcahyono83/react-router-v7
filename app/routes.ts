@@ -25,7 +25,7 @@ export default [
           "routes/customers/CustomerCreateWithPpoePage.tsx",
         ),
         route("customers/:id", "routes/customers/detail.tsx"),
-        route("customers/:id/edit", "routes/customers/edit.tsx"),
+        route("customers/:id/edit", "routes/customers/customer-form.tsx"),
         route("customer/create/:id?", "routes/customers/customer-form.tsx"),
 
         //Pembayaran

@@ -63,7 +63,7 @@ export default function AreaTable({ loading, data }: Props) {
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="font-semibold">{area.customers.length}</p>
+                      <p className="font-semibold">{area._count.customers}</p>
                     </div>
                   </div>
                 </td>
@@ -71,7 +71,7 @@ export default function AreaTable({ loading, data }: Props) {
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="font-semibold">{area.Odp?.length || 0}</p>
+                      <p className="font-semibold">{area._count.odp}</p>
                     </div>
                   </div>
                 </td>
