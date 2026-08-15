@@ -26,7 +26,7 @@ export default [
         ),
         route("customers/:id", "routes/customers/detail.tsx"),
         route("customers/:id/edit", "routes/customers/edit.tsx"),
-        route("customer/create/:id?", "routes/customers/create.tsx"),
+        route("customer/create/:id?", "routes/customers/customer-form.tsx"),
 
         //Pembayaran
         route("pembayaran", "routes/pembayaran/pembayaran.tsx"),

@@ -108,6 +108,7 @@ export default function CustomerFormPage() {
           username: String(c.username ?? ""),
           fullname: String(c.fullname ?? ""),
           email: String(c.email ?? ""),
+          password: String(c.password),
           phoneNumber: String(c.phoneNumber ?? ""),
           address: String(c.address ?? ""),
           ontName: String(c.ontName ?? ""),
@@ -139,6 +140,7 @@ export default function CustomerFormPage() {
         fullname: values.fullname.trim(),
         email: values.email?.trim() || undefined,
         phoneNumber: values.phoneNumber?.trim() || undefined,
+        password: values.password?.trim(),
         address: values.address?.trim() || undefined,
         ontName: values.ontName?.trim() || undefined,
         redamanOlt: values.redamanOlt?.trim() || undefined,
@@ -154,7 +156,16 @@ export default function CustomerFormPage() {
       if (mode === "edit" && id) {
         await updateCustomer(id, payload);
       } else if (mode === "create" && values.withPppoe) {
-        await registerCustomer({ ...payload, password: values.password });
+        // Profile PPPoE wajib — dikirim dari form (dropdown paket)
+        if (!values.pppoeProfile) {
+          throw new Error("Profile PPPoE wajib dipilih.");
+        }
+
+        await registerCustomer({
+          ...payload,
+          password: values.password,
+          profile: values.pppoeProfile,
+        });
       } else {
         await createCustomer(payload);
       }

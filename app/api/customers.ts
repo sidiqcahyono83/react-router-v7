@@ -167,7 +167,7 @@ export async function createCustomer(data: any) {
 
 /** POST /customers/register — create + PPPoE sekaligus */
 export async function registerCustomer(data: any) {
-  const res = await fetch(`${API}/customers/register`, {
+  const res = await fetch(`${API}/customers`, {
     method: "POST",
     credentials: "include",
     headers: {

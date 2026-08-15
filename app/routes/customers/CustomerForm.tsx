@@ -18,6 +18,8 @@ export type CustomerStatus = (typeof CUSTOMER_STATUS)[number];
 
 export const customerSchema = z.object({
   username: z.string().min(3, "Username minimal 3 karakter"),
+  password: z.string().min(3, "Username minimal 3 karakter"),
+
   fullname: z.string().min(3, "Nama lengkap minimal 3 karakter"),
   email: z
     .string()
@@ -42,8 +44,18 @@ export const customerSchema = z.object({
   oltId: z.string().optional().or(z.literal("")),
 
   // Register PPPoE (create)
-  password: z.string().optional().or(z.literal("")),
+  passwordPPPoe: z.string().optional().or(z.literal("")),
   withPppoe: z.boolean().optional(),
+  pppoeProfile: z.string().optional().or(z.literal("")),
+}).superRefine((val, ctx) => {
+  // Profile PPPoE WAJIB dipilih kalau centang "buat akun PPPoE"
+  if (val.withPppoe && !val.pppoeProfile) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["pppoeProfile"],
+      message: "Profile PPPoE wajib dipilih.",
+    });
+  }
 });
 
 /** Tipe hasil validasi (output zod) — dipakai onSubmit */
@@ -114,6 +126,7 @@ export default function CustomerForm({
     defaultValues: {
       username: "",
       fullname: "",
+      password: "",
       email: "",
       phoneNumber: "",
       address: "",
@@ -126,8 +139,9 @@ export default function CustomerForm({
       odpId: "",
       modemId: "",
       oltId: "",
-      password: "",
+      passwordPPPoe: "",
       withPppoe: false,
+      pppoeProfile: "",
       ...(defaultValues as Partial<CustomerFormInput>),
     },
   });
@@ -183,6 +197,19 @@ export default function CustomerForm({
                 }`}
             />
             {field("username")}
+          </div>
+          <div>
+            <label className={labelCls}>
+              Password <span className="text-red-500">*</span>
+            </label>
+            <input
+              {...register("password")}
+              disabled={readOnly || mode === "edit"}
+              placeholder="cth: budi01"
+              className={`${inputCls} ${mode === "edit" ? "cursor-not-allowed bg-slate-100" : ""
+                }`}
+            />
+            {field("password")}
           </div>
 
           <div>
@@ -353,17 +380,41 @@ export default function CustomerForm({
           </label>
 
           {withPppoe && (
-            <div className="mt-3">
-              <label className={labelCls}>
-                Password PPPoE <span className="text-red-500">*</span>
-              </label>
-              <input
-                {...register("password")}
-                type="password"
-                placeholder="Min. 4 karakter"
-                className={inputCls}
-              />
-              {field("password")}
+            <div className="mt-3 space-y-3">
+              <div>
+                <label className={labelCls}>
+                  Profile PPPoE <span className="text-red-500">*</span>
+                </label>
+                <select
+                  {...register("pppoeProfile")}
+                  disabled={readOnly}
+                  className={inputCls}
+                >
+                  <option value="">Pilih Profile PPPoE...</option>
+                  {options.pakets.map((p) => (
+                    <option key={p.id} value={p.name ?? p.nama ?? p.id}>
+                      {p.name ?? p.nama ?? p.id}
+                      {p.harga
+                        ? ` - Rp ${Number(p.harga).toLocaleString("id-ID")}`
+                        : ""}
+                    </option>
+                  ))}
+                </select>
+                {field("pppoeProfile")}
+              </div>
+
+              <div>
+                <label className={labelCls}>
+                  Password PPPoE <span className="text-red-500">*</span>
+                </label>
+                <input
+                  {...register("password")}
+                  type="password"
+                  placeholder="Min. 4 karakter"
+                  className={inputCls}
+                />
+                {field("password")}
+              </div>
             </div>
           )}
         </div>
