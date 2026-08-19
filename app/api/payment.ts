@@ -472,7 +472,7 @@ const CHARGE_CANDIDATES = [
   "/payment/payments/charge",
   "/gateway/payments/charge",
   "/midtrans/payments/charge",
-  "/api/payments/charge",
+  "/paymentGetway/payments/charge",
 ];
 
 /** Parsing JSON yang aman — kalau body bukan JSON (mis. teks "Not Found"), kembalikan pesan readable */
