@@ -6,6 +6,7 @@ import {
   Check,
   Clock3,
   Copy,
+  Phone,
   ExternalLink,
   Loader2,
   MessageCircle,
@@ -16,7 +17,12 @@ import {
   X,
 } from "lucide-react";
 import { cancelInvoice, expireInvoice, getInvoiceId } from "~/api/invoice";
-import { formatTanggal } from "~/types/toIdr";
+import { formatTanggal, formatTanggalIndonesia } from "~/types/toIdr";
+import {
+  buildWhatsAppUrl,
+  formatPhoneDisplay,
+  normalizePhoneId,
+} from "~/lib/waMassege";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 
 const rupiah = (n: number) =>
@@ -25,6 +31,29 @@ const rupiah = (n: number) =>
     currency: "IDR",
     minimumFractionDigits: 0,
   });
+
+const NAMA_BULAN = [
+  "Januari",
+  "Februari",
+  "Maret",
+  "April",
+  "Mei",
+  "Juni",
+  "Juli",
+  "Agustus",
+  "September",
+  "Oktober",
+  "November",
+  "Desember",
+];
+
+/** "8/2026" -> "Agustus 2026" */
+const labelPeriode = (bulan?: number | string, tahun?: number | string) => {
+  const b = Number(bulan);
+  const nama = b >= 1 && b <= 12 ? NAMA_BULAN[b - 1] : bulan;
+
+  return `${nama ?? "-"} ${tahun ?? ""}`.trim();
+};
 
 const PAYMENT_STATUS_LABEL: Record<string, string> = {
   SUCCESS: "Berhasil",
@@ -58,29 +87,60 @@ export default function InvoiceDetail() {
   // State modal "Kirim Tagihan"
   const [showShare, setShowShare] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedText, setCopiedText] = useState(false);
 
-  const paymentLink = invoice
-    ? `${window.location.origin}/bayar/${invoice.id}`
-    : "";
+  const origin =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : (import.meta.env.VITE_APP_URL ?? "");
 
-  const copyLink = () => {
-    if (!paymentLink) return;
+  const paymentLink = invoice ? `${origin}/bayar/${invoice.id}` : "";
+
+  // Nomor WhatsApp customer (dinormalisasi ke format 62xxx)
+  const customerPhoneRaw = invoice?.customer?.phoneNumber ?? "";
+  const customerPhone = normalizePhoneId(customerPhoneRaw);
+  const hasPhone = customerPhone !== "";
+
+  const copyToClipboard = (value: string, onDone: (v: boolean) => void) => {
+    if (!value) return;
     navigator.clipboard
-      .writeText(paymentLink)
+      .writeText(value)
       .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        onDone(true);
+        setTimeout(() => onDone(false), 2000);
       })
-      .catch(() => setError("Gagal menyalin link."));
+      .catch(() => setError("Gagal menyalin ke clipboard."));
   };
 
+  const copyLink = () => copyToClipboard(paymentLink, setCopied);
+
   const waText = invoice
-    ? `Halo ${invoice.customer?.fullname ?? ""}, berikut tagihan internet Anda:%0A%0AInvoice: ${invoice.invoiceNumber}%0APeriode: ${invoice.bulan}/${invoice.tahun}%0ATotal: Rp ${Number(
-      invoice.total ?? 0
-    ).toLocaleString("id-ID")}%0A%0ASilakan bayar melalui link berikut:%0A${paymentLink}`
+    ? [
+      `Halo *${invoice.customer?.fullname ?? "Pelanggan"}*,`,
+      "",
+      "Berikut rincian tagihan internet Anda:",
+      "",
+      `🧾 No. Invoice : ${invoice.invoiceNumber}`,
+      `📅 Periode     : ${labelPeriode(invoice.bulan, invoice.tahun)}`,
+      invoice.customer?.paket?.nama || invoice.customer?.paket?.name
+        ? `📶 Paket       : ${invoice.customer.paket.nama ?? invoice.customer.paket.name}`
+        : null,
+      `💰 Total       : ${rupiah(Number(invoice.total) || 0)}`,
+      invoice.dueDate
+        ? `⏰ Jatuh Tempo : ${formatTanggalIndonesia(invoice.dueDate)}`
+        : null,
+      "",
+      "Silakan lakukan pembayaran melalui link berikut:",
+      paymentLink,
+      "",
+      "Pembayaran dapat dilakukan via Virtual Account, QRIS, e-wallet, dan metode lainnya.",
+      "Abaikan pesan ini jika Anda sudah membayar. Terima kasih 🙏",
+    ]
+      .filter((baris) => baris !== null)
+      .join("\n")
     : "";
 
-  const waUrl = `https://wa.me/?text=${encodeURIComponent(waText)}`;
+  const waUrl = buildWhatsAppUrl(waText, customerPhoneRaw);
 
   const load = () => {
     if (!id) return;
@@ -288,7 +348,7 @@ export default function InvoiceDetail() {
               <div>
                 <p className="text-slate-500">Periode</p>
                 <p className="mt-0.5 font-semibold">
-                  {invoice.bulan}/{invoice.tahun}
+                  {labelPeriode(invoice.bulan, invoice.tahun)}
                 </p>
               </div>
               <div>
@@ -363,6 +423,21 @@ export default function InvoiceDetail() {
               <div>
                 <p className="text-slate-500">No. HP</p>
                 <p className="mt-0.5 font-medium">{customer.phoneNumber ?? "-"}</p>
+                {hasPhone ? (
+                  <a
+                    href={buildWhatsAppUrl(waText, customerPhoneRaw)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-0.5 inline-flex items-center gap-1.5 font-medium text-green-700 hover:underline"
+                  >
+                    <MessageCircle size={14} />
+                    {formatPhoneDisplay(customerPhoneRaw)}
+                  </a>
+                ) : (
+                  <p className="mt-0.5 font-medium">
+                    {customer.phoneNumber || "-"}
+                  </p>
+                )}
               </div>
               <div>
                 <p className="text-slate-500">Status Customer</p>
@@ -441,34 +516,79 @@ export default function InvoiceDetail() {
             </div>
 
             <p className="text-sm text-slate-500">
-              Bagikan link ini ke customer. Customer bisa membayar sendiri
-              melalui Midtrans (Virtual Account, QRIS, dll).
+              Kirim tagihan langsung ke WhatsApp customer. Customer bisa
+              membayar sendiri melalui Midtrans (Virtual Account, QRIS, dll).
             </p>
 
             <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs text-slate-400">Link Pembayaran</p>
-              <p className="mt-1 break-all text-sm font-medium text-blue-700">
-                {paymentLink}
-              </p>
+              <div className="mt-4 flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <Phone size={16} className="mt-0.5 shrink-0 text-slate-400" />
+                <div className="min-w-0">
+                  <p className="text-xs text-slate-400">Nomor Tujuan</p>
+                  {hasPhone ? (
+                    <p className="mt-0.5 text-sm font-semibold text-slate-700">
+                      {formatPhoneDisplay(customerPhoneRaw)}
+                      <span className="ml-2 font-normal text-slate-400">
+                        ({customer.fullname ?? "-"})
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="mt-0.5 text-sm font-medium text-amber-600">
+                      Customer belum punya nomor HP yang valid — WhatsApp akan
+                      terbuka tanpa tujuan, pilih kontak secara manual.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="mt-4 grid grid-cols-1 gap-2">
-              <button
-                onClick={copyLink}
-                className="flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700"
-              >
-                {copied ? <Check size={16} /> : <Copy size={16} />}
-                {copied ? "Tersalin!" : "Salin Link"}
-              </button>
+              {/* Preview pesan */}
+              <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs text-slate-400">Preview Pesan</p>
+                <pre className="mt-1 max-h-52 overflow-y-auto whitespace-pre-wrap break-words font-sans text-xs leading-relaxed text-slate-600">
+                  {waText}
+                </pre>
+              </div>
+
 
               <a
                 href={waUrl}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => setShowShare(false)}
                 className="flex items-center justify-center gap-2 rounded-xl bg-green-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-600"
               >
-                <MessageCircle size={16} /> Kirim via WhatsApp
+                <MessageCircle size={16} />
+                {hasPhone
+                  ? `Kirim ke ${formatPhoneDisplay(customerPhoneRaw)}`
+                  : "Kirim via WhatsApp"}
               </a>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={copyLink}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                >
+                  {copied ? (
+                    <Check size={16} className="text-green-600" />
+                  ) : (
+                    <Copy size={16} />
+                  )}
+                  {copied ? "Tersalin!" : "Salin Link"}
+                </button>
+
+                <button
+                  onClick={() => copyToClipboard(waText, setCopiedText)}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                >
+                  {copiedText ? (
+                    <Check size={16} className="text-green-600" />
+                  ) : (
+                    <Copy size={16} />
+                  )}
+                  {copiedText ? "Tersalin!" : "Salin Pesan"}
+                </button>
+              </div>
 
               <a
                 href={paymentLink}
@@ -476,7 +596,7 @@ export default function InvoiceDetail() {
                 rel="noreferrer"
                 className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
               >
-                <ExternalLink size={16} /> Buka Link
+                <ExternalLink size={16} /> Buka Link Pembayaran
               </a>
             </div>
           </div>
