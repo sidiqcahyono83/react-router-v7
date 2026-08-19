@@ -4,9 +4,25 @@
 // PENTING (env frontend / .env):
 //   Vite HANYA mengekspos variabel berawalan VITE_ ke browser.
 //   Var "MIDTRANS_CLIENT_KEY" (tanpa VITE_) TIDAK akan terbaca di sini.
-//   Tambahkan di .env frontend:
-//     VITE_MIDTRANS_CLIENT_KEY="SB-Mid-client-XDNIYVEvIbrXDpWl"
-//     VITE_MIDTRANS_ENV="sandbox"   // atau "production"
+//
+//   .env frontend untuk PRODUCTION (live):
+//     VITE_MIDTRANS_CLIENT_KEY="Mid-client-xxxxxxxx"   ← TANPA prefix "SB-"
+//     VITE_MIDTRANS_ENV="production"
+//
+//   .env frontend untuk SANDBOX (test):
+//     VITE_MIDTRANS_CLIENT_KEY="SB-Mid-client-xxxxxxxx"
+//     VITE_MIDTRANS_ENV="sandbox"
+//
+// ⚠️ KENAPA MASIH MODE TEST/SANDBOX?
+//   Mode Midtrans ditentukan di DUA sisi — keduanya harus production:
+//     1. FRONTEND → VITE_MIDTRANS_CLIENT_KEY (client key) — file ini
+//     2. BACKEND  → SERVER KEY saat membuat Snap token
+//   Kalau backend masih pakai server key sandbox, transaksi TETAP sandbox
+//   meski frontend sudah production. Indikator mode aktif (dari backend)
+//   ditampilkan di kartu pembayaran halaman ini.
+//
+//   Ingat: .env di-inline saat BUILD. Setelah ubah .env WAJIB build ulang
+//   (bun run build) lalu restart — restart saja tidak cukup.
 //
 // Alur:
 //   klik Bayar → POST /payments/charge { invoiceId }
@@ -17,9 +33,11 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import {
+  AlertTriangle,
   BadgeCheck,
   CreditCard,
   ExternalLink,
+  FlaskConical,
   Loader2,
   Lock,
   RefreshCw,
@@ -27,7 +45,14 @@ import {
 } from "lucide-react";
 import { chargePaymentGateway } from "~/api/payment";
 import { getInvoiceId } from "~/api/invoice";
-import { loadSnapScript, payWithSnap } from "~/lib/midtrans";
+import {
+  envFromRedirectUrl,
+  explainMidtransError,
+  loadSnapScript,
+  midtransEnvMismatch,
+  payWithSnap,
+  resolveMidtransEnv,
+} from "~/lib/midtrans";
 import PaymentStatusBadge from "./payment/PaymentStatusBadge";
 
 const rupiah = (n: number) =>
@@ -37,8 +62,15 @@ const rupiah = (n: number) =>
     minimumFractionDigits: 0,
   });
 
-const CLIENT_KEY = (import.meta.env.VITE_MIDTRANS_CLIENT_KEY ??
-  "") as string;
+const CLIENT_KEY = String(
+  import.meta.env.VITE_MIDTRANS_CLIENT_KEY ?? "",
+).trim();
+
+/** Mode yang dipakai FRONTEND (ditentukan dari prefix client key). */
+const FRONTEND_ENV = resolveMidtransEnv(CLIENT_KEY);
+
+/** Peringatan kalau VITE_MIDTRANS_ENV bentrok dengan client key. */
+const ENV_MISMATCH = midtransEnvMismatch(CLIENT_KEY);
 
 interface ChargeResult {
   message?: string;
@@ -68,6 +100,8 @@ export default function BayarInvoice() {
   const [error, setError] = useState("");
   const [charge, setCharge] = useState<ChargeResult | null>(null);
   const [snapMsg, setSnapMsg] = useState("");
+  // Penjelasan teknis untuk error konfigurasi Midtrans (mis. 401 key salah)
+  const [errorHint, setErrorHint] = useState("");
 
   useEffect(() => {
     if (!invoiceId) return;
@@ -97,12 +131,30 @@ export default function BayarInvoice() {
   const isPaid =
     String(invoice?.status ?? "").toUpperCase() === "PAID";
 
+  // ------------------------------------------------------------
+  // Deteksi mode Midtrans yang BENAR-BENAR dipakai.
+  //
+  // redirect_url dari backend adalah sumber kebenaran: URL-nya
+  // mengandung "sandbox.midtrans.com" kalau server key masih sandbox.
+  // Kalau charge belum dijalankan, pakai tebakan dari client key frontend.
+  // ------------------------------------------------------------
+  const backendEnv = envFromRedirectUrl(charge?.redirect_url);
+  const activeEnv = backendEnv ?? FRONTEND_ENV;
+  const isSandbox = activeEnv === "sandbox";
+
+  // Backend & frontend beda mode → token Snap pasti ditolak.
+  const envConflict =
+    backendEnv !== null && backendEnv !== FRONTEND_ENV
+      ? `Frontend memakai client key ${FRONTEND_ENV}, tapi backend membuat transaksi ${backendEnv}. Samakan keduanya (client key & server key) agar pembayaran berjalan.`
+      : "";
+
   const handlePay = async () => {
     if (!invoiceId) return;
 
     setLoading(true);
     setError("");
     setSnapMsg("");
+    setErrorHint("");
 
     try {
       // 1. Minta Snap token ke backend: POST /payments/charge
@@ -141,6 +193,24 @@ export default function BayarInvoice() {
         );
       }
 
+      // Diagnostik mode: kalau backend balas URL sandbox, server key
+      // di backend masih sandbox — ini penyebab paling umum "masih test".
+      const beEnv = envFromRedirectUrl(res.redirect_url);
+
+      if (beEnv) {
+        console.info(
+          `[bayar] mode backend: ${beEnv} | mode frontend: ${FRONTEND_ENV}`
+        );
+
+        if (beEnv === "sandbox") {
+          console.warn(
+            "[bayar] Backend membuat transaksi SANDBOX. Ganti MIDTRANS_SERVER_KEY " +
+            "di backend ke server key production (tanpa prefix SB-) dan set " +
+            "isProduction=true, lalu restart backend."
+          );
+        }
+      }
+
       // 3. Fallback: buka halaman pembayaran Midtrans di tab baru
       if (res.redirect_url) {
         window.open(res.redirect_url, "_blank");
@@ -153,11 +223,24 @@ export default function BayarInvoice() {
         );
       }
     } catch (err) {
-      setError(
+      const raw =
         err instanceof Error
           ? err.message
-          : "Gagal memproses pembayaran. Silakan coba lagi."
-      );
+          : "Gagal memproses pembayaran. Silakan coba lagi.";
+
+      const hint = explainMidtransError(raw);
+
+      if (hint) {
+        // Error konfigurasi — customer tidak perlu lihat detail teknisnya.
+        setError(
+          "Pembayaran online sedang tidak tersedia karena masalah konfigurasi. Silakan hubungi admin."
+        );
+        setErrorHint(hint);
+        console.error("[bayar] Midtrans 401 — kredensial backend ditolak.\n" + hint);
+        console.error("[bayar] pesan asli:", raw);
+      } else {
+        setError(raw);
+      }
     } finally {
       setLoading(false);
     }
@@ -177,6 +260,38 @@ export default function BayarInvoice() {
               Pembayaran aman melalui Midtrans
             </p>
           </div>
+
+          {/* Banner mode SANDBOX — uang tidak benar-benar berpindah */}
+          {isSandbox && (
+            <div className="flex items-start gap-2 border-b border-amber-200 bg-amber-100 px-4 py-3 text-left">
+              <FlaskConical
+                size={16}
+                className="mt-0.5 shrink-0 text-amber-600"
+              />
+              <div className="text-xs text-amber-800">
+                <p className="font-bold">MODE UJI COBA (Sandbox)</p>
+                <p className="mt-0.5">
+                  Transaksi ini <strong>tidak nyata</strong> — tidak ada uang
+                  yang berpindah. Untuk pembayaran sungguhan, pakai{" "}
+                  <em>client key</em> dan <em>server key</em> production.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Konfigurasi env bentrok */}
+          {(ENV_MISMATCH || envConflict) && (
+            <div className="flex items-start gap-2 border-b border-red-200 bg-red-100 px-4 py-3 text-left">
+              <AlertTriangle
+                size={16}
+                className="mt-0.5 shrink-0 text-red-600"
+              />
+              <div className="text-xs text-red-800">
+                <p className="font-bold">Konfigurasi Midtrans tidak konsisten</p>
+                <p className="mt-0.5">{envConflict || ENV_MISMATCH}</p>
+              </div>
+            </div>
+          )}
 
           {/* Body */}
           <div className="space-y-4 p-6">
@@ -247,6 +362,19 @@ export default function BayarInvoice() {
                           <PaymentStatusBadge status={payment.status} />
                         </div>
 
+                        {/* Mode transaksi menurut BACKEND (redirect_url) */}
+                        <div className="mt-2 flex items-center justify-between text-sm">
+                          <span className="text-slate-500">Mode</span>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${isSandbox
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-green-100 text-green-700"
+                              }`}
+                          >
+                            {isSandbox ? "Sandbox (uji coba)" : "Production"}
+                          </span>
+                        </div>
+
                         {payment.orderId && (
                           <p className="mt-3 truncate text-xs text-slate-400">
                             Order ID: {payment.orderId}
@@ -259,6 +387,21 @@ export default function BayarInvoice() {
                     {error && (
                       <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                         <p>{error}</p>
+
+                        {/* Detail teknis — disembunyikan di balik <details>
+                            supaya tidak membingungkan customer, tapi tetap
+                            bisa dibaca admin saat troubleshooting. */}
+                        {errorHint && (
+                          <details className="mt-2">
+                            <summary className="cursor-pointer text-xs font-semibold text-red-800">
+                              Detail teknis (untuk admin)
+                            </summary>
+                            <pre className="mt-2 max-h-56 overflow-y-auto whitespace-pre-wrap wrap-break-word rounded-lg bg-red-100 p-2.5 font-sans text-xs leading-relaxed text-red-900">
+                              {errorHint}
+                            </pre>
+                          </details>
+                        )}
+
                         <button
                           onClick={handlePay}
                           disabled={loading}
