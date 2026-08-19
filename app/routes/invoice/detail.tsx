@@ -546,7 +546,7 @@ export default function InvoiceDetail() {
               {/* Preview pesan */}
               <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <p className="text-xs text-slate-400">Preview Pesan</p>
-                <pre className="mt-1 max-h-52 overflow-y-auto whitespace-pre-wrap break-words font-sans text-xs leading-relaxed text-slate-600">
+                <pre className="mt-1 max-h-52 overflow-y-auto whitespace-pre-wrap wrap-break-word font-sans text-xs leading-relaxed text-slate-600">
                   {waText}
                 </pre>
               </div>
