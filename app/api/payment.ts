@@ -467,12 +467,12 @@ const CHARGE_CANDIDATES = [
   // Dipakai di index.ts backend: app.route("/paymentGetway", webhookRoute)
   "/paymentGetway/payments/charge",
   // Kandidat lain (kalau suatu saat mount path-nya diubah)
-  "/payments/charge",
-  "/payment-gateway/payments/charge",
-  "/payment/payments/charge",
-  "/gateway/payments/charge",
-  "/midtrans/payments/charge",
-  "/paymentGetway/payments/charge",
+  // "/payments/charge",
+  // "/payment-gateway/payments/charge",
+  // "/payment/payments/charge",
+  // "/gateway/payments/charge",
+  // "/midtrans/payments/charge",
+  // "/paymentGetway/payments/charge",
 ];
 
 /** Parsing JSON yang aman — kalau body bukan JSON (mis. teks "Not Found"), kembalikan pesan readable */
